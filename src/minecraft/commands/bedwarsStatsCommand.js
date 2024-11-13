@@ -1,5 +1,6 @@
 const { capitalize, formatNumber } = require("../../contracts/helperFunctions.js");
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
+const config = require("../../../config.json");
 const hypixel = require("../../contracts/API/HypixelRebornAPI.js");
 
 class BedwarsCommand extends minecraftCommand {

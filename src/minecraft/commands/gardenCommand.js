@@ -1,6 +1,7 @@
 const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js");
 const { formatUsername } = require("../../contracts/helperFunctions.js");
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
+const config = require("../../../config.json");
 const getGarden = require("../../../API/stats/garden.js");
 
 class GardenCommand extends minecraftCommand {

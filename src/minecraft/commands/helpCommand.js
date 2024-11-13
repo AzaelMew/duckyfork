@@ -1,4 +1,5 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
+const config = require("../../../config.json");
 
 class HelpCommand extends minecraftCommand {
   constructor(minecraft) {

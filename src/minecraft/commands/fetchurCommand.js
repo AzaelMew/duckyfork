@@ -1,4 +1,5 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
+const config = require("../../../config.json");
 const { getFetchur } = require("../../../API/functions/getFetchur.js");
 
 class FetchurCommand extends minecraftCommand {

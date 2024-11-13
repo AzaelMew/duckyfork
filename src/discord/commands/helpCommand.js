@@ -38,27 +38,19 @@ module.exports = {
           return `- \`${command.name}${optionsString}\`\n`;
         })
         .join("");
-
+      
       const helpMenu = new EmbedBuilder()
         .setColor(0x0099ff)
         .setTitle("Hypixel Discord Chat Bridge Commands")
         .setDescription("() = required argument, [] = optional argument")
         .addFields(
           {
-            name: "**Minecraft**: ",
-            value: `${minecraftCommands}`,
-            inline: true,
-          },
-          {
-            name: "**Discord**: ",
+            name: "**Slash Commands**: ",
             value: `${discordCommands}`,
             inline: true,
           },
         )
-        .setFooter({
-          text: "by @duckysolucky | /help [command] for more information",
-          iconURL: "https://imgur.com/tgwQJTX.png",
-        });
+
 
       await interaction.followUp({ embeds: [helpMenu] });
     } else {
@@ -96,10 +88,7 @@ module.exports = {
         .setColor(0x0099ff)
         .setTitle(`**${type === "discord" ? "/" : config.minecraft.bot.prefix}${command.name}**`)
         .setDescription(description + "\n")
-        .setFooter({
-          text: "by @duckysolucky | () = required, [] = optional",
-          iconURL: "https://imgur.com/tgwQJTX.png",
-        });
+
 
       await interaction.followUp({ embeds: [embed] });
     }

@@ -1,36 +1,51 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
-const axios = require("axios");
+const config = require("../../../config.json");
 
+async function ask() {
+    let eightball = [
+        'It is certain.',
+        'It is decidedly so.',
+        'Without a doubt.',
+        'Yes definitely.',
+        'You may rely on it.',
+        'As I see it, yes.',
+        'Most likely.',
+        'Outlook good.',
+        'Yes.',
+        'Signs point to yes.',
+        "Don't count on it.",
+        'My reply is no.',
+        'My sources say no.',
+        'Outlook not so good.',
+        'Very doubtful.',
+        'No way.',
+        'Maybe',
+        'No.',
+        'Depends on the mood of the RNGesus',
+        'No',
+        'Yes',
+    ];
+    let index = (Math.floor(Math.random() * Math.floor(eightball.length)));
+    return eightball[index]
+
+
+}
 class EightBallCommand extends minecraftCommand {
   constructor(minecraft) {
-    super(minecraft);
+    super(minecraft)
 
-    this.name = "8ball";
-    this.aliases = ["8b"];
-    this.description = "Ask an 8ball a question.";
-    this.options = [
-      {
-        name: "question",
-        description: "The question you want to ask the 8ball",
-        required: true,
-      },
-    ];
+    this.name = '8ball'
+    this.description = '8ball'
   }
 
-  async onCommand(username, message) {
-    try {
-      if (this.getArgs(message).length === 0) {
-        // eslint-disable-next-line no-throw-literal
-        throw "You must provide a question.";
-      }
-
-      const { data } = await axios.get(`https://www.eightballapi.com/api`);
-
-      this.send(`/gc ${data.reading}`);
-    } catch (error) {
-      this.send(`/gc [ERROR] ${error}`);
-    }
+  onCommand(username, message) {
+    ask().then(ans => {
+        setTimeout(() => {
+            this.send(`/gc ${ans}`)
+            this.minecraft.broadcastCommandEmbed3({ username: `The Magic 8 Ball`, message: `${ans}`, icon: "https://cdn.discordapp.com/attachments/1045517755044085762/1084545786886504508/mlfaJuO.png" })
+        }, 1000);
+      })
   }
 }
 
-module.exports = EightBallCommand;
+module.exports = EightBallCommand

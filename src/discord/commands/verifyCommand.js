@@ -80,10 +80,6 @@ module.exports = {
         .setColor("4BB543")
         .setAuthor({ name: "Successfully linked!" })
         .setDescription(`${user ? `<@${user.id}>'s` : "Your"} account has been successfully linked to \`${nickname}\``)
-        .setFooter({
-          text: `by @.kathund | /help [command] for more information`,
-          iconURL: "https://i.imgur.com/uUuZx2E.png",
-        });
 
       await interaction.editReply({ embeds: [embed], ephemeral: true });
 
@@ -108,10 +104,7 @@ module.exports = {
         .setColor(15548997)
         .setAuthor({ name: "An Error has occurred" })
         .setDescription(`\`\`\`${error}\`\`\``)
-        .setFooter({
-          text: `by @.kathund | /help [command] for more information`,
-          iconURL: "https://i.imgur.com/uUuZx2E.png",
-        });
+
 
       await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
 
@@ -128,10 +121,7 @@ module.exports = {
             }\`\n6) You're done! Wait around 30 seconds and then try again.\n\n**Getting "The URL isn't valid!"?**\nHypixel has limitations on the characters supported in a Discord username. Try changing your Discord username temporarily to something without special characters, updating it in-game, and trying again.`,
           )
           .setImage("https://media.discordapp.net/attachments/922202066653417512/1066476136953036800/tutorial.gif")
-          .setFooter({
-            text: `by @.kathund | /help [command] for more information`,
-            iconURL: "https://i.imgur.com/uUuZx2E.png",
-          });
+
 
         await interaction.followUp({ embeds: [verificationTutorialEmbed], ephemeral: true });
       }

@@ -12,7 +12,140 @@ const { EmbedBuilder } = require("discord.js");
 const config = require("../../../config.json");
 const Logger = require("../../Logger.js");
 const { readFileSync } = require("fs");
+const axios = require("axios");
+const fs = require('fs');
+const path = require('path');
+const { setInterval } = require('timers/promises');
+const Canvas = require('canvas');
+const { url } = require('inspector');
+function charInc(str, int) {
+  const charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let incrementedStr = '';
+  for (let i = 0; i < str.length; i++) {
+    let char = str[i];
+    let index = charSet.indexOf(char);
 
+    if (index == -1) {
+      incrementedStr += char;
+    } else {
+      let offset = index + int
+      while (offset >= charSet.length) {
+        offset -= charSet.length
+      }
+      while (offset < 0) {
+        offset += charSet.length
+      }
+      let nextChar = charSet[offset];
+      incrementedStr += nextChar;
+    }
+  }
+  return incrementedStr;
+}
+function decode(string) {
+  if (!string.startsWith('l$')) {
+    throw new Error('String does not appear to be in STuF');
+  }
+  let prefix = string[2];
+  let suffix = string[3];
+  let dotIndices = string.slice(4, string.indexOf('|')).split('').map(Number);
+  let urlBody = string.slice(string.indexOf('|') + 1);
+
+  let first9 = urlBody.slice(0, 9 - dotIndices.length);
+  let then = urlBody.slice(9 - dotIndices.length).replace(/\^/g, '.');
+
+  let url = first9 + then;
+  url = charInc(url, -1)
+
+  // Restore the dots in the first part of the URL
+  dotIndices.forEach((index) => {
+    url = url.slice(0, index) + '.' + url.slice(index);
+  });
+
+  // Add the prefix back
+  if (prefix === 'h') {
+    url = 'http://' + url;
+  } else if (prefix === 'H') {
+    url = 'https://' + url;
+  }
+
+  // Add the suffix back
+  if (suffix === '1') {
+    url += '.png';
+  } else if (suffix === '2') {
+    url += '.jpg';
+  } else if (suffix === '3') {
+    url += '.jpeg';
+  } else if (suffix === '4') {
+    url += '.gif';
+  }
+
+  return url;
+}
+function Encode(url) {
+  let encoded = "l$"
+  if (url.startsWith('http://')) {
+    encoded += 'h';
+    url = url.slice(7); // Remove the 'http://' part
+  } else if (url.startsWith('https://')) {
+    encoded += 'H';
+    url = url.slice(8); // Remove the 'https://' part
+  }
+
+  if (url.endsWith('.png')) {
+    encoded += '1';
+    url = url.slice(0, -4); // Remove the '.png' part
+  } else if (url.endsWith('.jpg')) {
+    encoded += '2';
+    url = url.slice(0, -4); // Remove the '.jpg' part
+  } else if (url.endsWith('.jpeg')) {
+    encoded += '3';
+    url = url.slice(0, -5); // Remove the '.jpeg' part
+  } else if (url.endsWith('.gif')) {
+    encoded += '4';
+    url = url.slice(0, -4); // Remove the '.gif' part
+  } else {
+    encoded += '0';
+  }
+
+  let dotIndices = [];
+  for (let i = 0; (i < url.length) && (i <= 8); i++) {
+    if (url[i] === '.') {
+      dotIndices.push(i);
+      if (dotIndices.length === 9) break; // Stop after 9 dots
+    }
+  }
+
+  let first9 = url.substring(0, 9)
+  let then = url.substring(9).replace(/\./g, '^');
+  first9 = first9.replace(/\./g, '');
+  let shifted = charInc(first9 + then, 1)
+
+  encoded += dotIndices.map(index => index.toString()).join('') + '|';
+  encoded += shifted
+
+
+  return encoded;
+}
+function makeid(length) {
+  var result           = '';
+  var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for ( var i = 0; i < length; i++ ) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+ return result;
+}
+async function apicall(message) {
+  try {
+    const response = await axios.post('http://localhost:3002/api/command', { message: message }, { headers: { Authorization: "yonkowashere" } })
+  } catch (error) {
+    if (error.code === 'ECONNREFUSED') {
+      console.error('Connection refused: Aria is offline');
+    } else {
+      console.error('An error occurred:', error.message);
+    }
+  }
+}
 class StateHandler extends eventHandler {
   constructor(minecraft, command, discord) {
     super();
@@ -83,28 +216,10 @@ class StateHandler extends eventHandler {
       );
       const uuid = await getUUID(username);
       if (config.minecraft.guildRequirements.enabled) {
-        const [player, profile] = await Promise.all([hypixel.getPlayer(uuid), getLatestProfile(uuid)]);
+        const [profile] = await Promise.all([ getLatestProfile(uuid)]);
         let meetRequirements = false;
-
-        const weightData = getWeight(profile.profile, profile.uuid);
-        const weight = weightData?.senither?.total || 0;
+        console.log(username)
         const skyblockLevel = (profile.profile?.leveling?.experience || 0) / 100 ?? 0;
-
-        const bwLevel = player.stats.bedwars.level;
-        const bwFKDR = player.stats.bedwars.finalKDRatio;
-
-        const swLevel = player.stats.skywars.level / 5;
-        const swKDR = player.stats.skywars.KDRatio;
-
-        const duelsWins = player.stats.duels.wins;
-        const dWLR = player.stats.duels.WLRatio;
-
-        if (
-          weight > config.minecraft.guildRequirements.requirements.senitherWeight &&
-          config.minecraft.guildRequirements.requirements.senitherWeight > 0
-        ) {
-          meetRequirements = true;
-        }
 
         if (
           skyblockLevel > config.minecraft.guildRequirements.requirements.skyblockLevel &&
@@ -113,59 +228,8 @@ class StateHandler extends eventHandler {
           meetRequirements = true;
         }
 
-        if (
-          bwLevel > config.minecraft.guildRequirements.requirements.bedwarsStars &&
-          config.minecraft.guildRequirements.requirements.bedwarsStars > 0
-        ) {
-          meetRequirements = true;
-        }
-        if (
-          bwLevel > config.minecraft.guildRequirements.requirements.bedwarsStarsWithFKDR &&
-          bwFKDR > config.minecraft.guildRequirements.requirements.bedwarsFKDR &&
-          config.minecraft.guildRequirements.requirements.bedwarsStarsWithFKDR > 0 &&
-          config.minecraft.guildRequirements.requirements.bedwarsFKDR > 0
-        ) {
-          meetRequirements = true;
-        }
-
-        if (
-          swLevel > config.minecraft.guildRequirements.requirements.skywarsStars &&
-          config.minecraft.guildRequirements.requirements.skywarsStars > 0
-        ) {
-          meetRequirements = true;
-        }
-
-        if (
-          swLevel > config.minecraft.guildRequirements.requirements.skywarsStarsWithKDR &&
-          swKDR > config.minecraft.guildRequirements.requirements.skywarsStarsWithKDR &&
-          config.minecraft.guildRequirements.requirements.skywarsStarsWithKDR > 0 &&
-          config.minecraft.guildRequirements.requirements.skywarsStars > 0
-        ) {
-          meetRequirements = true;
-        }
-
-        if (
-          duelsWins > config.minecraft.guildRequirements.requirements.duelsWins &&
-          config.minecraft.guildRequirements.requirements.duelsWins > 0
-        ) {
-          meetRequirements = true;
-        }
-
-        if (
-          duelsWins > config.minecraft.guildRequirements.requirements.duelsWinsWithWLR &&
-          dWLR > config.minecraft.guildRequirements.requirements.duelsWinsWithWLR &&
-          config.minecraft.guildRequirements.requirements.duelsWinsWithWLR > 0 &&
-          config.minecraft.guildRequirements.requirements.duelsWins > 0
-        ) {
-          meetRequirements = true;
-        }
-
         bot.chat(
-          `/oc ${username} ${meetRequirements ? "meets" : "Doesn't meet"} Requirements. [BW] [${
-            player.stats.bedwars.level
-          }✫] FKDR: ${player.stats.bedwars.finalKDRatio} | [SW] [${player.stats.skywars.level}✫] KDR: ${
-            player.stats.skywars.KDRatio
-          } | [Duels] Wins: ${player.stats.duels.wins.toLocaleString()} WLR: ${player.stats.duels.WLRatio.toLocaleString()} | SB Weight: ${weight.toLocaleString()} | SB Level: ${skyblockLevel.toLocaleString()}`,
+          `/oc ${username} ${meetRequirements ? "meets" : "Doesn't meet"} Requirements.  SB Level: ${skyblockLevel.toLocaleString()}`,
         );
         await delay(1000);
 
@@ -176,55 +240,10 @@ class StateHandler extends eventHandler {
 
           const statsEmbed = new EmbedBuilder()
             .setColor(2067276)
-            .setTitle(`${player.nickname} has requested to join the Guild!`)
-            .setDescription(`**Hypixel Network Level**\n${player.level}\n`)
-            .addFields(
-              {
-                name: "Bedwars Level",
-                value: `${player.stats.bedwars.level}`,
-                inline: true,
-              },
-              {
-                name: "Skywars Level",
-                value: `${player.stats.skywars.level}`,
-                inline: true,
-              },
-              {
-                name: "Duels Wins",
-                value: `${player.stats.duels.wins}`,
-                inline: true,
-              },
-              {
-                name: "Bedwars FKDR",
-                value: `${player.stats.bedwars.finalKDRatio}`,
-                inline: true,
-              },
-              {
-                name: "Skywars KDR",
-                value: `${player.stats.skywars.KDRatio}`,
-                inline: true,
-              },
-              {
-                name: "Duels WLR",
-                value: `${player.stats.duels.KDRatio}`,
-                inline: true,
-              },
-              {
-                name: "Senither Weight",
-                value: `${weight.toLocaleString()}`,
-                inline: true,
-              },
-              {
-                name: "Skyblock Level",
-                value: `${skyblockLevel.toLocaleString()}`,
-                inline: true,
-              },
-            )
-            .setThumbnail(`https://www.mc-heads.net/avatar/${player.nickname}`)
-            .setFooter({
-              text: `by @duckysolucky | /help [command] for more information`,
-              iconURL: "https://imgur.com/tgwQJTX.png",
-            });
+            .setTitle(`${username} has requested to join the Guild!`)
+            .setDescription(`Skyblock level: ${skyblockLevel.toLocaleString()}`)
+
+            .setThumbnail(`https://www.mc-heads.net/avatar/${username}`)
 
           await client.channels.cache.get(`${config.discord.channels.loggingChannel}`).send({ embeds: [statsEmbed] });
         }
@@ -234,6 +253,7 @@ class StateHandler extends eventHandler {
     if (this.isLoginMessage(message)) {
       if (config.discord.other.joinMessage === true) {
         const username = message.split(">")[1].trim().split("joined.")[0].trim();
+        apicall(`/gc ${username} joined. {${makeid(6)}}`)
         return this.minecraft.broadcastPlayerToggle({
           fullMessage: colouredMessage,
           username: username,
@@ -247,6 +267,7 @@ class StateHandler extends eventHandler {
     if (this.isLogoutMessage(message)) {
       if (config.discord.other.joinMessage === true) {
         const username = message.split(">")[1].trim().split("left.")[0].trim();
+        apicall(`/gc ${username} left. {${makeid(6)}}`)
         return this.minecraft.broadcastPlayerToggle({
           fullMessage: colouredMessage,
           username: username,
@@ -266,9 +287,10 @@ class StateHandler extends eventHandler {
       bot.chat(
         `/gc ${replaceVariables(messages.guildJoinMessage, {
           prefix: config.minecraft.bot.prefix,
-        })} | by @duckysolucky`,
+        })}`,
       );
       await this.updateUser(username);
+      apicall(`/gc ${username} has joined Sky. {${makeid(6)}}`)
       return [
         this.minecraft.broadcastHeadedEmbed({
           message: replaceVariables(messages.joinMessage, { username }),
@@ -293,6 +315,8 @@ class StateHandler extends eventHandler {
         .trim()
         .split(/ +/g)[0];
       await this.updateUser(username);
+      apicall(`/gc ${username} left the guild. {${makeid(6)}}`)
+
       return [
         this.minecraft.broadcastHeadedEmbed({
           message: replaceVariables(messages.leaveMessage, { username }),
@@ -317,6 +341,8 @@ class StateHandler extends eventHandler {
         .trim()
         .split(/ +/g)[0];
       await this.updateUser(username);
+      apicall(`/gc ${username} was kicked from the guild. {${makeid(6)}}`)
+
       return [
         this.minecraft.broadcastHeadedEmbed({
           message: replaceVariables(messages.kickMessage, { username }),
@@ -347,6 +373,8 @@ class StateHandler extends eventHandler {
         .pop()
         .trim();
       await this.updateUser(username);
+      apicall(`/gc ${username} was promoted to ${rank} {${makeid(6)}}`)
+
       return [
         this.minecraft.broadcastCleanEmbed({
           message: replaceVariables(messages.promotionMessage, {
@@ -379,6 +407,8 @@ class StateHandler extends eventHandler {
         .pop()
         .trim();
       await this.updateUser(username);
+      apicall(`/gc ${username} was demoted to ${rank} {${makeid(6)}}`)
+
       return [
         this.minecraft.broadcastCleanEmbed({
           message: replaceVariables(messages.demotionMessage, {
@@ -738,7 +768,6 @@ class StateHandler extends eventHandler {
         channel: "Guild",
       });
     }
-
     /*if (this.isPartyMessage(message)) {
       this.minecraft.broadcastCleanEmbed({ 
         message: `${message}`, 
@@ -757,11 +786,64 @@ class StateHandler extends eventHandler {
     if (!match) {
       return;
     }
-
     if (this.isDiscordMessage(match.groups.message) === false) {
       const { chatType, rank, username, guildRank = "[Member]", message } = match.groups;
       if (message.includes("replying to") && username === this.bot.username) {
         return;
+      }
+      if (this.isMessageFromBot(username)) {
+        return
+      }
+      
+      if (message.includes("l$")) {
+        let message2 = message.split(' ')
+        for (let i = 0; i < message2.length; i++) {
+          if (message2[i].startsWith('l$')) {
+            let temp = message2[i]
+            let link = decode(message2[i])
+            message2 = message.replace(temp, link)
+            if (link.endsWith(".jpg") || link.endsWith(".png") || link.endsWith(".jpeg") || link.endsWith(".webp") || link.endsWith(".gif")) {
+              if(link.includes("img.azael.moe")){
+                link = link.replace(/https:\/\/img\.azael\.moe\//gm,"https://img.azael.moe/r/")
+              }
+              this.minecraft.broadcastTextEmbed({
+                username: username,
+                message: message2.replace(link, ""),
+                url: link,
+                guildRank: guildRank,
+              })
+              return;
+            } else {
+              this.minecraft.broadcastTextEmbed({
+                username: username,
+                message: message2,
+                guildRank: guildRank,
+              })
+              return;
+            }
+          }
+        }
+  
+      }
+  
+      if (this.isSoopyMessage(message)) {
+        const regex = /\<ItemSharing:(\d+)\>/g;
+        if (regex.test(message)) {
+          let itemNumber = message.match(regex);
+          let newmessage = message.replace(itemNumber, "")
+          let overflow = message
+          let newitemNumber = itemNumber.toString().replace("<ItemSharing:", "").replace(">", "")
+          getItemLore(newitemNumber).then(responseurl => {
+            this.minecraft.broadcastTextEmbed({
+              username: username,
+              message: newmessage,
+              guildRank: guildRank,
+              url: responseurl,
+              overflow: overflow.replace(itemNumber,Encode(responseurl))
+            })
+            return this.bot.chat(`/gc ${username}: ${responseurl}`)
+          })
+        }
       }
 
       this.minecraft.broadcastMessage({
@@ -772,17 +854,11 @@ class StateHandler extends eventHandler {
         rank,
         guildRank,
         message,
-        color: this.minecraftChatColorToHex(this.getRankColor(colouredMessage)),
+        color: 0x2A2A2A,
       });
     }
 
     if (this.isCommand(match.groups.message)) {
-      if (this.isDiscordMessage(match.groups.message) === true) {
-        const { player, command } = this.getCommandData(match.groups.message);
-
-        return this.command.handle(player, command);
-      }
-
       return this.command.handle(match.groups.username, match.groups.message);
     }
   }
@@ -936,6 +1012,13 @@ class StateHandler extends eventHandler {
 
   isIncorrectUsage(message) {
     return message.includes("Invalid usage!") && !message.includes(":");
+  }
+
+  isSoopyMessage(message) {
+    const regex = /\<ItemSharing:(\d+)\>/g;
+    if (regex.test(message)) {
+      return message;
+    }
   }
 
   isOnlineInvite(message) {

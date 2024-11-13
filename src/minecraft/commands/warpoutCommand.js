@@ -1,4 +1,5 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
+const config = require("../../../config.json");
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 class warpoutCommand extends minecraftCommand {

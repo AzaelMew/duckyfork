@@ -12,10 +12,7 @@ module.exports = {
       .setColor(0x0099ff)
       .setTitle("🏓 Pong!")
       .setDescription(`Client Latency: \`${clientLatency}ms\`\nAPI Latency: \`${apiLatency}ms\``)
-      .setFooter({
-        text: `by @duckysolucky | /help [command] for more information`,
-        iconURL: "https://imgur.com/tgwQJTX.png",
-      });
+
 
     interaction.followUp({ embeds: [embed] });
   },

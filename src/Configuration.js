@@ -1,4 +1,4 @@
-const Logger = require("./Logger.js");
+const Logger = require("./Logger");
 const fs = require("fs");
 
 const exampleConfig = JSON.parse(fs.readFileSync("config.example.json"));

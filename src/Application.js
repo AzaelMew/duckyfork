@@ -1,6 +1,6 @@
 const MinecraftManager = require("./minecraft/MinecraftManager.js");
 const DiscordManager = require("./discord/DiscordManager.js");
-const webManager = require("./web/WebsiteManager.js");
+const ExpressManager = require('./express/ExpressManager')
 // eslint-disable-next-line no-unused-vars
 const Configuration = require("./Configuration.js");
 // eslint-disable-next-line no-unused-vars
@@ -10,7 +10,7 @@ class Application {
   async register() {
     this.discord = new DiscordManager(this);
     this.minecraft = new MinecraftManager(this);
-    this.web = new webManager(this);
+    this.express = new ExpressManager(this)
 
     this.discord.setBridge(this.minecraft);
     this.minecraft.setBridge(this.discord);
@@ -19,7 +19,7 @@ class Application {
   async connect() {
     this.discord.connect();
     this.minecraft.connect();
-    this.web.connect();
+    this.express.initialize()
   }
 }
 

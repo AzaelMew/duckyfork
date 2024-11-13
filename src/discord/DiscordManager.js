@@ -9,7 +9,26 @@ const config = require("../../config.json");
 const Logger = require(".././Logger.js");
 const path = require("node:path");
 const fs = require("fs");
-
+const axios = require('axios')
+async function apicall(username, message, type, guildRank) {
+  try {
+    const response = await axios.post(
+      'http://localhost:3002/api/message',
+      { author: username, guild: "aria", message, type, guildRank }, // Simplified object property assignment
+      {
+        headers: {
+          Authorization: "yonkowashere"
+        }
+      }
+    )
+  } catch (error) {
+    if (error.code === 'ECONNREFUSED') {
+      console.error('Connection refused: Aria is offline');
+    } else {
+      console.error('An error occurred:', error.message);
+    }
+  }
+}
 class DiscordManager extends CommunicationBridge {
   constructor(app) {
     super();
@@ -17,7 +36,7 @@ class DiscordManager extends CommunicationBridge {
     this.app = app;
 
     this.stateHandler = new StateHandler(this);
-    this.messageHandler = new MessageHandler(this);
+    this.messageHandler = new MessageHandler(this, new CommandHandler(this))
     this.commandHandler = new CommandHandler(this);
   }
 
@@ -113,6 +132,7 @@ class DiscordManager extends CommunicationBridge {
       channel.send(imgurUrl);
       imgurUrl = "";
     }
+    await apicall(username, message, "bridge", guildRank)
 
     switch (mode) {
       case "bot":
@@ -182,8 +202,8 @@ class DiscordManager extends CommunicationBridge {
 
   async onBroadcastCleanEmbed({ message, color, channel }) {
     Logger.broadcastMessage(message, "Event");
-
-    channel = await this.stateHandler.getChannel(channel);
+    console.log(channel)
+    channel = await this.stateHandler.getChannel("Guild");
     channel.send({
       embeds: [
         {
@@ -198,6 +218,7 @@ class DiscordManager extends CommunicationBridge {
     Logger.broadcastMessage(message, "Event");
 
     channel = await this.stateHandler.getChannel(channel);
+
     channel.send({
       embeds: [
         {
@@ -210,6 +231,178 @@ class DiscordManager extends CommunicationBridge {
         },
       ],
     });
+  }
+
+  async onImageBroadcast(url) {
+    const channel = await this.stateHandler.getChannel("Guild");
+    channel.send(url)
+  }
+
+  async onTextEmbedBroadcast({ username, message, guildRank, url, overflow }) {
+    if (username !== this.app.minecraft.bot.username) {
+      apicall(username, overflow, "bridge", guildRank)
+    }
+
+    Logger.broadcastMessage(`${username} [${guildRank}]: ${message}`, "Event")
+    switch (config.discord.other.messageMode.toLowerCase()) {
+      case 'bot':
+        const channel = await this.stateHandler.getChannel("Guild");
+        channel.send({
+          embeds: [{
+            description: message,
+            color: 0x2A2A2A,
+            timestamp: new Date(),
+            footer: {
+              text: guildRank + " - Sky",
+            },
+            image: {
+              url: url,
+            },
+            author: {
+              name: username,
+              icon_url: 'https://www.mc-heads.net/avatar/' + username,
+            },
+          }],
+        })
+        break
+
+      case 'webhook':
+        message = message.replace(/@/g, '') // Stop pinging @everyone or @here
+        this.app.discord.webhook.send(
+          message, { username: username, avatarURL: 'https://www.mc-heads.net/avatar/' + username }
+        )
+        break
+
+      default:
+        throw new Error('Invalid message mode: must be bot or webhook')
+    }
+  }
+  async onFuckEmbedBroadcast({ username, message, url }) {
+
+    switch (config.discord.other.messageMode.toLowerCase()) {
+      case 'bot':
+        const channel = await this.stateHandler.getChannel("Guild");
+        channel.send({
+          embeds: [{
+            description: message,
+            color: 0x2A2A2A,
+            timestamp: new Date(),
+            image: {
+              url: url,
+            },
+            author: {
+              name: username,
+              icon_url: 'https://www.mc-heads.net/avatar/' + username,
+            },
+          }],
+        })
+        break
+
+      case 'webhook':
+        message = message.replace(/@/g, '') // Stop pinging @everyone or @here
+        this.app.discord.webhook.send(
+          message, { username: username, avatarURL: 'https://www.mc-heads.net/avatar/' + username }
+        )
+        break
+
+      default:
+        throw new Error('Invalid message mode: must be bot or webhook')
+    }
+  }
+  async onBroadcastNewImage({ username, image, icon }) {
+    Logger.broadcastMessage(image, "Event");
+
+    switch (config.discord.other.messageMode.toLowerCase()) {
+      case 'bot':
+        const channel = await this.stateHandler.getChannel("Guild");
+        channel.send({
+          embeds: [{
+            color: 0x2A2A2A,
+            timestamp: new Date(),
+            footer: {
+              text: "BOT",
+            },
+            image: {
+              url: image,
+            },
+            author: {
+              name: username,
+              icon_url: icon,
+            },
+          }],
+        })
+        break
+
+      case 'webhook':
+        //message = message.replace(/@/g, '') // Stop pinging @everyone or @here
+        /*this.app.discord.webhook.send(
+          message, { username: username, avatarURL: 'https://www.mc-heads.net/avatar/' + username }
+        )*/
+        break
+
+      default:
+        throw new Error('Invalid message mode: must be bot or webhook')
+    }
+  }
+
+  async onBroadcastCommandEmbed({ username, message }) {
+    Logger.broadcastMessage(message, "Event");
+
+
+    const channel = await this.stateHandler.getChannel("Guild");
+    let icon = username.split("'")
+    channel.send({
+      embeds: [{
+        description: message,
+        color: 0x2A2A2A,
+        timestamp: new Date(),
+        footer: {
+          text: "BOT",
+        },
+        author: {
+          name: username,
+          icon_url: 'https://www.mc-heads.net/avatar/' + icon[0],
+        },
+      }],
+    })
+  }
+
+  async onBroadcastCommandEmbed2({ username, message }) {
+    Logger.broadcastMessage(message, "Event");
+
+
+    const channel = await this.stateHandler.getChannel("Guild");
+    channel.send({
+      embeds: [{
+        description: message,
+        color: 0x2A2A2A,
+        timestamp: new Date(),
+        footer: {
+          text: "BOT",
+        },
+      }],
+    })
+  }
+
+  async onBroadcastCommandEmbed3({ username, message, icon }) {
+    Logger.broadcastMessage(message, "Event");
+
+
+    const channel = await this.stateHandler.getChannel("Guild");
+    channel.send({
+      embeds: [{
+        description: message,
+        color: 0x2A2A2A,
+        timestamp: new Date(),
+        footer: {
+          text: "BOT",
+        },
+        author: {
+          name: username,
+          icon_url: icon,
+        },
+      }],
+    })
   }
 
   async onPlayerToggle({ fullMessage, username, message, color, channel }) {

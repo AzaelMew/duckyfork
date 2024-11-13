@@ -91,8 +91,6 @@ class MinecraftManager extends CommunicationBridge {
       if (successfullySent === true) {
         return;
       }
-
-      discord.react("❌");
     }, 500);
   }
 }

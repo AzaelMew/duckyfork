@@ -2,6 +2,7 @@ const { formatUsername, formatNumber } = require("../../contracts/helperFunction
 const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js");
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
+const config = require("../../../config.json");
 const getJacob = require("../../../API/stats/jacob.js");
 
 class JacobCommand extends minecraftCommand {

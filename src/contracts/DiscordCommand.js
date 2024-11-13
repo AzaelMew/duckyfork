@@ -1,3 +1,16 @@
+const axios = require("axios");
+
+async function apicall(message) {
+  try {
+    const response = await axios.post('http://localhost:3002/api/command', { message: message }, { headers: { Authorization: "yonkowashere" } })
+  } catch (error) {
+    if (error.code === 'ECONNREFUSED') {
+      console.error('Connection refused: Aria is offline');
+    } else {
+      console.error('An error occurred:', error.message);
+    }
+  }
+}
 class DiscordCommand {
   constructor(discord) {
     this.discord = discord;
@@ -14,6 +27,7 @@ class DiscordCommand {
   sendMinecraftMessage(message) {
     if (this.discord.app.minecraft.bot.player !== undefined) {
       this.discord.app.minecraft.bot.chat(message);
+      apicall(message)
     }
   }
 

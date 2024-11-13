@@ -7,13 +7,8 @@ const { EmbedBuilder } = require("discord.js");
  * @param {string} description - The description of the embed.
  */
 class Embed extends EmbedBuilder {
-  constructor(color = 3447003, title, description, footer) {
+  constructor(color = 3447003, title, description) {
     super();
-
-    this.setFooter({
-      text: `by @duckysolucky | /help [command] for more information`,
-      iconURL: "https://imgur.com/tgwQJTX.png",
-    });
 
     if (color) {
       this.setColor(color);
@@ -27,9 +22,6 @@ class Embed extends EmbedBuilder {
       this.setDescription(description);
     }
 
-    if (footer) {
-      this.setFooter(footer);
-    }
   }
 }
 
@@ -61,14 +53,11 @@ class SuccessEmbed extends Embed {
    * Constructs a new SuccessEmbed instance.
    * @param {string} description - The description of the success.
    */
-  constructor(description, footer) {
+  constructor(description) {
     super();
 
     this.setAuthor({ name: "Success" });
     this.setColor(5763719);
-
-    if (footer) this.setFooter(footer);
-
     this.setDescription(description);
   }
 }

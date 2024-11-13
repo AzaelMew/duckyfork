@@ -3,7 +3,17 @@ const config = require("../../config.json");
 const Logger = require("../Logger.js");
 const axios = require("axios");
 const fs = require("fs");
-
+async function apicall(message) {
+  try {
+    const response = await axios.post('http://localhost:3002/api/command', { message: message }, { headers: { Authorization: "yonkowashere" } })
+  } catch (error) {
+    if (error.code === 'ECONNREFUSED') {
+      console.error('Connection refused: Aria is offline');
+    } else {
+      console.error('An error occurred:', error.message);
+    }
+  }
+}
 class CommandHandler {
   constructor(minecraft) {
     this.minecraft = minecraft;
@@ -33,6 +43,7 @@ class CommandHandler {
       if (command === undefined) {
         return;
       }
+      apicall(`/gc ${player}: ${message}`)
 
       Logger.minecraftMessage(`${player} - [${command.name}] ${message}`);
       command.onCommand(player, message);
@@ -45,8 +56,9 @@ class CommandHandler {
       if (isNaN(parseInt(command.replace(/[^-()\d/*+.]/g, ""))) === false) {
         return;
       }
-
+      apicall(`/gc ${player}: ${message}`)
       bot.chat(`/gc [SOOPY V2] ${message}`);
+      
 
       Logger.minecraftMessage(`${player} - [${command}] ${message}`);
 

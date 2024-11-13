@@ -1,7 +1,19 @@
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const helperFunctions = require("./helperFunctions.js");
 const config = require("../../config.json");
+const axios = require("axios");
 
+async function apicall(message) {
+  try {
+    const response = await axios.post('http://localhost:3002/api/command', { message: message }, { headers: { Authorization: "yonkowashere" } })
+  } catch (error) {
+    if (error.code === 'ECONNREFUSED') {
+      console.error('Connection refused: Aria is offline');
+    } else {
+      console.error('An error occurred:', error.message);
+    }
+  }
+}
 class minecraftCommand {
   constructor(minecraft) {
     this.minecraft = minecraft;
@@ -33,6 +45,8 @@ class minecraftCommand {
         }
 
         await delay(250);
+        apicall(message)
+
         return this.send(message);
       } else if (
         msg.toString().includes("You cannot say the same message twice!") === true &&
@@ -46,8 +60,10 @@ class minecraftCommand {
         }
 
         await delay(250);
+        apicall(message)
+
         return this.send(
-          `${message} - ${helperFunctions.generateID(config.minecraft.bot.messageRepeatBypassLength)}`,
+          `${message} {${helperFunctions.generateID(config.minecraft.bot.messageRepeatBypassLength)}}`,
           n + 1,
         );
       }

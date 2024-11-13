@@ -1,4 +1,5 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
+const config = require("../../../config.json");
 const hypixel = require("../../contracts/API/HypixelRebornAPI.js");
 
 class EightBallCommand extends minecraftCommand {

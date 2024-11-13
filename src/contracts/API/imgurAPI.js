@@ -1,16 +1,13 @@
 const config = require("../../../config.json");
-const { ImgurClient } = require("imgur");
+const imgur = require('imgur-anonymous-uploader');
 
-const imgurClient = new ImgurClient({
-  clientId: config.minecraft.API.imgurAPIkey,
-});
+const uploader = new imgur("318214bc4f4717f");
+
 
 async function uploadImage(image) {
-  const response = await imgurClient.upload({
-    image: image,
-  });
+  const response = await uploader.uploadBuffer(image);
 
-  if (response.success === false) {
+  if (!response.url) {
     // eslint-disable-next-line no-throw-literal
     throw "An error occured while uploading the image. Please try again later.";
   }

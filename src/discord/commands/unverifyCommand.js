@@ -41,10 +41,7 @@ module.exports = {
         .setColor(15548997)
         .setAuthor({ name: "An Error has occurred" })
         .setDescription(`\`\`\`${error}\`\`\``)
-        .setFooter({
-          text: `by @.kathund | /help [command] for more information`,
-          iconURL: "https://i.imgur.com/uUuZx2E.png",
-        });
+
 
       await interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
     }

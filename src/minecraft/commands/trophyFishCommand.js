@@ -1,6 +1,7 @@
 const { formatUsername, formatNumber } = require("../../contracts/helperFunctions.js");
 const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js");
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
+const config = require("../../../config.json");
 const getCrimson = require("../../../API/stats/crimson.js");
 
 class TrophyFishCommand extends minecraftCommand {

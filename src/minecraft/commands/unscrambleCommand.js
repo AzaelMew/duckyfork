@@ -1,5 +1,6 @@
 const { getRandomWord, scrambleWord } = require("../constants/words.js");
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
+const config = require("../../../config.json");
 const getWord = (message) => message.split(" ").pop();
 
 const cooldowns = new Map();

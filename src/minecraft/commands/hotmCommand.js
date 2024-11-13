@@ -1,6 +1,7 @@
 const { formatNumber, formatUsername } = require("../../contracts/helperFunctions.js");
 const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js");
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
+const config = require("../../../config.json");
 const getHotm = require("../../../API/stats/hotm.js");
 
 class HotmCommand extends minecraftCommand {

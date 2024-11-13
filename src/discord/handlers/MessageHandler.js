@@ -2,10 +2,185 @@ const { uploadImage } = require("../../contracts/API/imgurAPI.js");
 const { demojify } = require("discord-emoji-converter");
 const config = require("../../../config.json");
 
+const imgur = require('imgur-anonymous-uploader');
+const uploader = new imgur("318214bc4f4717f");
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios')
+async function apicall(username, message, type, guildRank) {
+  try {
+    const response = await axios.post(
+      'http://localhost:3002/api/message',
+      { author: username, guild: "aria", message, type, guildRank }, // Simplified object property assignment
+      {
+        headers: {
+          Authorization: "yonkowashere"
+        }
+      }
+    )
+  } catch (error) {
+    if (error.code === 'ECONNREFUSED') {
+      console.error('Connection refused: Aria is offline');
+    } else {
+      console.error('An error occurred:', error.message);
+    }
+  }
+}
+
+async function downloadUploadDeleteImage(imageUrl) {
+  try {
+    // Define a temporary file path to store the image
+    const filePath = path.join(__dirname, 'downloaded_image.png');
+
+    // Step 1: Download the image using axios
+    const response = await axios({
+      url: imageUrl,
+      method: 'GET',
+      responseType: 'stream'
+    });
+
+    // Step 2: Save the image to the file system
+    const writer = fs.createWriteStream(filePath);
+    response.data.pipe(writer);
+
+    // Wait for the file to be written
+    await new Promise((resolve, reject) => {
+      writer.on('finish', resolve);
+      writer.on('error', reject);
+    });
+
+    // Step 3: Upload the image using uploader.upload(filepath)
+    const uploadResponse = await uploader.uploadFile(filePath)
+    console.log('Image uploaded successfully');
+
+    // Step 4: Delete the file after upload
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error('Failed to delete file:', err);
+      } else {
+        console.log('File deleted successfully');
+      }
+    });
+
+    // Step 5: Return new URL
+    return uploadResponse.url
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+function charInc(str, int) {
+  const charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let incrementedStr = '';
+  for (let i = 0; i < str.length; i++) {
+    let char = str[i];
+    let index = charSet.indexOf(char);
+
+    if (index == -1) {
+      incrementedStr += char;
+    } else {
+      let offset = index + int
+      while (offset >= charSet.length) {
+        offset -= charSet.length
+      }
+      while (offset < 0) {
+        offset += charSet.length
+      }
+      let nextChar = charSet[offset];
+      incrementedStr += nextChar;
+    }
+  }
+  return incrementedStr;
+}
+function decode(string) {
+  if (!string.startsWith('l$')) {
+    throw new Error('String does not appear to be in STuF');
+  }
+  let prefix = string[2];
+  let suffix = string[3];
+  let dotIndices = string.slice(4, string.indexOf('|')).split('').map(Number);
+  let urlBody = string.slice(string.indexOf('|') + 1);
+
+  let first9 = urlBody.slice(0, 9 - dotIndices.length);
+  let then = urlBody.slice(9 - dotIndices.length).replace(/\^/g, '.');
+
+  let url = first9 + then;
+  url = charInc(url, -1)
+
+  // Restore the dots in the first part of the URL
+  dotIndices.forEach((index) => {
+    url = url.slice(0, index) + '.' + url.slice(index);
+  });
+
+  // Add the prefix back
+  if (prefix === 'h') {
+    url = 'http://' + url;
+  } else if (prefix === 'H') {
+    url = 'https://' + url;
+  }
+
+  // Add the suffix back
+  if (suffix === '1') {
+    url += '.png';
+  } else if (suffix === '2') {
+    url += '.jpg';
+  } else if (suffix === '3') {
+    url += '.jpeg';
+  } else if (suffix === '4') {
+    url += '.gif';
+  }
+
+  return url;
+}
+async function Encode(url) {
+  let encoded = "l$"
+  if (url.startsWith('http://')) {
+    encoded += 'h';
+    url = url.slice(7); // Remove the 'http://' part
+  } else if (url.startsWith('https://')) {
+    encoded += 'H';
+    url = url.slice(8); // Remove the 'https://' part
+  }
+
+  if (url.endsWith('.png')) {
+    encoded += '1';
+    url = url.slice(0, -4); // Remove the '.png' part
+  } else if (url.endsWith('.jpg')) {
+    encoded += '2';
+    url = url.slice(0, -4); // Remove the '.jpg' part
+  } else if (url.endsWith('.jpeg')) {
+    encoded += '3';
+    url = url.slice(0, -5); // Remove the '.jpeg' part
+  } else if (url.endsWith('.gif')) {
+    encoded += '4';
+    url = url.slice(0, -4); // Remove the '.gif' part
+  } else {
+    encoded += '0';
+  }
+
+  let dotIndices = [];
+  for (let i = 0; (i < url.length) && (i <= 8); i++) {
+    if (url[i] === '.') {
+      dotIndices.push(i);
+      if (dotIndices.length === 9) break; // Stop after 9 dots
+    }
+  }
+
+  let first9 = url.substring(0, 9)
+  let then = url.substring(9).replace(/\./g, '^');
+  first9 = first9.replace(/\./g, '');
+  let shifted = charInc(first9 + then, 1)
+
+  encoded += dotIndices.map(index => index.toString()).join('') + '|';
+  encoded += shifted
+
+
+  return encoded;
+}
+
 class MessageHandler {
-  constructor(discord, command) {
+  constructor(discord, oldcommand) {
     this.discord = discord;
-    this.command = command;
+    this.oldcommand = oldcommand;
   }
 
   async onMessage(message) {
@@ -13,13 +188,42 @@ class MessageHandler {
       if (message.author.id === client.user.id || !this.shouldBroadcastMessage(message)) {
         return;
       }
-
-      const discordUser = await message.guild.members.fetch(message.author.id);
-      const memberRoles = discordUser.roles.cache.map((role) => role.id);
-      if (memberRoles.some((role) => config.discord.commands.blacklistRoles.includes(role))) {
-        return;
+      const urlRegex = /https?:\/\/[^\s]+/g;
+      const urls = message.content.match(urlRegex);
+      this.oldcommand.handle(message)
+      if (urls) {
+        let prom = new Promise ((resolve, reject) => {
+          urls.forEach(async(url, index, array) => {
+            let ogurl = url
+            let url2 = undefined
+            if (url.includes("img.azael.moe")) {
+              url2 = url.replace(/https:\/\/img\.azael\.moe\//gm, "https://img.azael.moe/r/")
+              url = await downloadUploadDeleteImage(url2)
+            }
+            const encodedUrl = await Encode(url);
+            message.content = message.content.replace(ogurl, encodedUrl);
+            if(index === array.length -1) resolve();
+          })
+        })
+        prom.then(() => {
+          if(this.shouldBroadcastMessage(message)){
+            this.discord.broadcastMessage({
+              username: message.member.displayName,
+              message: message.content.replace(/<[@|#|!|&]{1,2}(\d+){16,}>/g, '\n')
+              .replace(/<:\w+:(\d+){16,}>/g, '\n')
+              .replace(/<.*:\d{16,20}>/g, "\n")
+              .split('\n')
+              .map(part => {
+                part = part.trim()
+        
+                return part.length == 0 ? '' : part + ' '
+              })
+              .join('')
+            })
+          }
+        })
+        return
       }
-
       const content = this.stripDiscordContent(message).trim();
       if (content.length === 0 && message.attachments.size === 0) {
         return;
@@ -31,7 +235,6 @@ class MessageHandler {
       }
 
       const formattedUsername = this.formatEmojis(username);
-
       const messageData = {
         member: message.member.user,
         channel: message.channel.id,
@@ -40,6 +243,7 @@ class MessageHandler {
         replyingTo: await this.fetchReply(message),
         discord: message,
       };
+      await apicall(formattedUsername.replaceAll(" ", ""), content, "discord")
 
       const images = content.split(" ").filter((line) => line.startsWith("http"));
       for (const attachment of message.attachments.values()) {
@@ -169,7 +373,9 @@ class MessageHandler {
 
     return isValid && validChannelIds.includes(message.channel.id);
   }
-
+  shouldReadChannel(message) {
+    return message.channel.id == "1165608524538187896"
+  }
   formatEmojis(content) {
     // ? demojify() function has a bug. It throws an error when it encounters channel with emoji in its name. Example: #💬・guild-chat
     try {
