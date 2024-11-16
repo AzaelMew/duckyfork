@@ -51,10 +51,10 @@ class PokeCommand extends minecraftCommand {
   //      onFuckEmbedBroadcast({ username, message, url}) {
 
   onCommand(username, message) {
-    let target = message.split(" ")
+    let target = message.split(" ").slice(1).join(" ");
     getPoke().then(a => {
-        this.send(`/gc ${username} has poked ${target[1]}!`)
-        this.minecraft.broadcastFuckEmbed({ username: username, message: `Has poked ${target[1]}`,url:a })
+        this.send(`/gc ${username} has poked ${target}!`)
+        this.minecraft.broadcastFuckEmbed({ username: username, message: `Has poked ${target}`,url:a })
     })
 
 

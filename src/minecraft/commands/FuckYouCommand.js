@@ -53,10 +53,10 @@ class FuckYouCommand extends minecraftCommand {
   //      onFuckEmbedBroadcast({ username, message, url}) {
 
   onCommand(username, message) {
-    let target = message.split(" ")
+    let target = message.split(" ").slice(1).join(" ");
     getfuckyou().then(a => { 
-        this.send(`/gc ${username}: Fuck you ${target[1]}!`)
-        this.minecraft.broadcastFuckEmbed({ username: username, message: `Fuck you ${target[1]}`,url:a })
+        this.send(`/gc ${username}: Fuck you ${target}!`)
+        this.minecraft.broadcastFuckEmbed({ username: username, message: `Fuck you ${target}`,url:a })
     })
   }
 }

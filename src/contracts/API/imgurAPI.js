@@ -9,6 +9,7 @@ async function uploadImage(image) {
 
   if (!response.url) {
     // eslint-disable-next-line no-throw-literal
+    console.log(response)
     throw "An error occured while uploading the image. Please try again later.";
   }
 

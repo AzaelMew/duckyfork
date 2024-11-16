@@ -155,8 +155,7 @@ class RenderCommand extends minecraftCommand {
       const upload = await uploadImage(renderedItem);
 
       imgurUrl = upload.url
-      console.log(imgurUrl)
-      this.minecraft.broadcastImage(`${username}'s Active Pet: ${imgurUrl}`)
+      this.minecraft.broadcastImage({username: username, url: imgurUrl})
 
       return this.send(`/gc ${username}'s Active Pet: ${Encode(imgurUrl)}`);
     } catch (error) {

@@ -51,10 +51,10 @@ class SlapCommand extends minecraftCommand {
   //      onFuckEmbedBroadcast({ username, message, url}) {
 
   onCommand(username, message) {
-    let target = message.split(" ")
+    let target = message.split(" ").slice(1).join(" ");
     getSlap().then(a => {
-        this.send(`/gc ${username} has slapped ${target[1]}!`)
-        this.minecraft.broadcastFuckEmbed({ username: username, message: `Has slapped ${target[1]}`,url:a })
+        this.send(`/gc ${username} has slapped ${target}!`)
+        this.minecraft.broadcastFuckEmbed({ username: username, message: `Has slapped ${target}`,url:a })
     })
 
 

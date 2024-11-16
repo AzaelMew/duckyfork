@@ -37,9 +37,11 @@ function incrementNumberInJSON(itemName) {
 async function getBonk() {
     return new Promise((resolve, reject) => {
         try {
-            axios.get('https://waifu.it/api/v4/bonk', {headers: {
-                Authorization: "NTM3MzMxNzk3OTA2OTQ4MTA3.MTczMDAzOTQyMw--.68be21ac0",
-            }})
+            axios.get('https://waifu.it/api/v4/bonk', {
+                headers: {
+                    Authorization: "NTM3MzMxNzk3OTA2OTQ4MTA3.MTczMDAzOTQyMw--.68be21ac0",
+                }
+            })
                 .then(response => {
                     const data = response.data;
                     fs.readFile(filename, 'utf8', (err, fileData) => {
@@ -85,9 +87,12 @@ class BonkCommand extends DiscordCommand {
     onCommand(message) {
         let args = this.getArgs(message)
         let user = args.shift()
-        let mcuser = this.getArgs(message).shift()
-
-
+        let target = message.content.split(" ").slice(1).join(" ");
+        let mcuser = target
+        if (!user) return
+        if (message?.mentions?.users?.first()) {
+            mcuser = target.replace(`<@${message.mentions.users.first().id}>`, message.mentions.users.first().globalName)
+        }
         if (message?.mentions?.users?.first()?.username === user) {
             try {
                 user = `<@${message.mentions.users.first().id}>`
@@ -108,10 +113,12 @@ class BonkCommand extends DiscordCommand {
                     }],
                 })
             } else {
-                this.sendMinecraftMessage(`/gc ${message.author.username} bonked ${mcuser}!`)
+                setTimeout(() => {
+                    this.sendMinecraftMessage(`/gc ${message.author.globalName} pat ${mcuser}!`)
+                }, 350);
                 message.channel.send({
                     embeds: [{
-                        description: `${message.author} bonked ${user}!`,
+                        description: `${message.author} bonked ${target}!`,
                         image: {
                             url: Bonk,
                         },

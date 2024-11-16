@@ -155,7 +155,7 @@ module.exports = (profile) => {
       if (!heldItemObj) {
         heldItemObj = constants.pet_items[heldItem];
       }
-      lore.push("", `§6Held Item: §${constants.rarityColors[heldItemObj.tier.toLowerCase()]}${heldItemObj.name}`);
+      lore.push("", `§6Held Item: §${constants.rarityColors[heldItemObj?.tier.toLowerCase()]}${heldItemObj?.name}`);
 
       if (heldItem in constants.pet_items) {
         lore.push(constants.pet_items[heldItem].description);

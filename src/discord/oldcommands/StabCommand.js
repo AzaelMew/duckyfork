@@ -88,15 +88,11 @@ class StabCommand extends DiscordCommand {
     onCommand(message) {
         let args = this.getArgs(message)
         let user = args.shift()
-        let mcuser = this.getArgs(message).shift()
-
-        console.log(user)
-        if (message?.mentions?.users?.first()?.username === user) {
-            try {
-                user = `<@${message.mentions.users.first().id}>`
-            } catch {
-                return
-            }
+        let target = message.content.split(" ").slice(1).join(" ");
+        let mcuser = target
+        if (!user) return
+        if (message?.mentions?.users?.first()) {
+            mcuser = target.replace(`<@${message.mentions.users.first().id}>`, message.mentions.users.first().globalName)
         }
         getStab().then(Stab => {
             if (Stab == "Please wait 5 seconds before running this command again") {
@@ -111,10 +107,12 @@ class StabCommand extends DiscordCommand {
                     }],
                 })
             } else {
-                this.sendMinecraftMessage(`/gc ${message.author.username} has stabbed ${mcuser}!`)
+                setTimeout(() => {
+                    this.sendMinecraftMessage(`/gc ${message.author.globalName} pat ${mcuser}!`)
+                }, 350); 
                 message.channel.send({
                     embeds: [{
-                        description: `${message.author} has stabbed ${user}!`,
+                        description: `${message.author} has stabbed ${target}!`,
                         image: {
                             url: Stab,
                         },

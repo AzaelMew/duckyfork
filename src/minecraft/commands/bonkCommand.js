@@ -53,10 +53,10 @@ class BonkCommand extends minecraftCommand {
   //      onFuckEmbedBroadcast({ username, message, url}) {
 
   onCommand(username, message) {
-    let target = message.split(" ")
+    let target = message.split(" ").slice(1).join(" ");
     getBonk().then(a => {
-        this.send(`/gc ${username} bonked ${target[1]}!`)
-        this.minecraft.broadcastFuckEmbed({ username: username, message: `bonked ${target[1]}`,url:a })
+        this.send(`/gc ${username} bonked ${target}!`)
+        this.minecraft.broadcastFuckEmbed({ username: username, message: `bonked ${target}`,url:a })
     })
 
 

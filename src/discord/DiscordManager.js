@@ -9,7 +9,8 @@ const config = require("../../config.json");
 const Logger = require(".././Logger.js");
 const path = require("node:path");
 const fs = require("fs");
-const axios = require('axios')
+const axios = require('axios');
+const { description } = require("./commands/updateCommand.js");
 async function apicall(username, message, type, guildRank) {
   try {
     const response = await axios.post(
@@ -233,9 +234,122 @@ class DiscordManager extends CommunicationBridge {
     });
   }
 
-  async onImageBroadcast(url) {
+  async onImageBroadcast({ username, url }) {
     const channel = await this.stateHandler.getChannel("Guild");
-    channel.send(url)
+    channel.send({
+      embeds: [{
+        description: "",
+        color: 0x2A2A2A,
+        timestamp: new Date(),
+        footer: {
+          text: "BOT",
+        },
+        image: {
+          url: url,
+        },
+        author: {
+          name: `${username}`,
+          icon_url: 'https://www.mc-heads.net/avatar/' + username,
+        },
+      }],
+    })
+  }
+
+  async onImageBroadcast2({ username, url }) {
+    const channel = await this.stateHandler.getChannel("Guild");
+    console.log(url)
+    url = url.split(" | ")
+
+
+    channel.send({
+      embeds: [
+        {
+          "type": "rich",
+          "url": "https://example.com/",
+          "description": "",
+          "color": 0x2A2A2A,
+          "image": {
+            "url": url[3]
+          },
+          "author": {
+            "name": username,
+            "icon_url": 'https://www.mc-heads.net/avatar/' + username,
+          },
+        },
+        {
+          "url": "https://example.com/",
+          "description": "",
+          "image": {
+            "url": url[2]
+          }
+        },
+        {
+          "url": "https://example.com/",
+          "description": "",
+          "image": {
+            "url": url[1]
+          }
+        },
+        {
+          "url": "https://example.com/",
+          "description": "",
+          "image": {
+            "url": url[0]
+          }
+        },
+      ]
+    })
+  }
+
+  async onOfficerBroadcast({ username, message, guildRank }) {
+    switch (this.app.config.discord.messageMode.toLowerCase()) {
+      case 'bot':
+        const channel = await this.stateHandler.getChannel("officer");
+
+        //sends to other bridge
+        if (username !== this.app.minecraft.bot.username) {
+          axios.post('http://localhost:3002/api/message', { author: username, guild: "aria", message: message, type: "officer", guildRank: guildRank }, {
+            headers: {
+              Authorization: "yonkowashere"
+            }
+          })
+        }
+
+        channel.send({
+          embeds: [{
+            description: message,
+            color: 0x2A2A2A,
+            timestamp: new Date(),
+            footer: {
+              text: guildRank + " - Sky",
+            },
+            author: {
+              name: username,
+              icon_url: 'https://www.mc-heads.net/avatar/' + username,
+            },
+          }],
+        })
+        break
+
+      case 'webhook':
+        message = message.replace(/@/g, '') // Stop pinging @everyone or @here
+        this.app.discord.webhook.send(
+          message, { username: username, avatarURL: 'https://www.mc-heads.net/avatar/' + username }
+        )
+        break
+
+      default:
+        throw new Error('Invalid message mode: must be bot or webhook')
+    }
+  }
+  async onOfficerCommand({ message, color }) {
+    const channel = await this.stateHandler.getChannel("Officer");
+    channel.send({
+      embeds: [{
+        color: color,
+        description: message,
+      }]
+    })
   }
 
   async onTextEmbedBroadcast({ username, message, guildRank, url, overflow }) {

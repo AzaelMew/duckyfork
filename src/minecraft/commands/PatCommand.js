@@ -51,10 +51,10 @@ class PatCommand extends minecraftCommand {
   //      onFuckEmbedBroadcast({ username, message, url}) {
 
   onCommand(username, message) {
-    let target = message.split(" ")
+    let target = message.split(" ").slice(1).join(" ");
     getPat().then(a => {
-        this.send(`/gc ${username} pat ${target[1]}!`)
-        this.minecraft.broadcastFuckEmbed({ username: username, message: `pat ${target[1]}`,url:a })
+        this.send(`/gc ${username} pat ${target}!`)
+        this.minecraft.broadcastFuckEmbed({ username: username, message: `pat ${target}`,url:a })
     })
 
 

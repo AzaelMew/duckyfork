@@ -18,6 +18,9 @@ const path = require('path');
 const { setInterval } = require('timers/promises');
 const Canvas = require('canvas');
 const { url } = require('inspector');
+let retsu = ""
+let mes = "";
+
 function charInc(str, int) {
   const charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let incrementedStr = '';
@@ -485,7 +488,12 @@ class StateHandler extends eventHandler {
         channel: "Guild",
       });
     }
-
+    if (this.isLogMessage(message)) {
+      mes = retsu;
+      retsu = "";
+      mes = mes.replaceAll("_", "\\_");
+      return this.minecraft.broadcastOfficerCommand({ message: mes, color: 0x47F049 })
+    }
     if (this.isAlreadyBlacklistedMessage(message)) {
       return this.minecraft.broadcastHeadedEmbed({
         message: messages.alreadyBlacklistedMessage,
@@ -1062,7 +1070,15 @@ class StateHandler extends eventHandler {
   isGuildMuteMessage(message) {
     return message.includes("has muted the guild chat for") && !message.includes(":");
   }
-
+  isLogMessage(message) {
+    let regex = /^[A-Z][a-z]{2} \d{2} \d{4} \d{2}:\d{2} [A-Z]{3}:/gm;    
+    if (regex.test(message)) {
+      retsu += message +"\n"
+    }
+    if(message.includes("-----------------------------------------------------")){
+      return retsu
+    }
+  }
   isGuildUnmuteMessage(message) {
     return message.includes("has unmuted the guild chat!") && !message.includes(":");
   }

@@ -176,13 +176,13 @@ class RenderCommand extends minecraftCommand {
 
       const Name = inventoryData[itemNumber - 1]?.tag?.display?.Name;
       const Lore = inventoryData[itemNumber - 1]?.tag?.display?.Lore;
-      console.log(Name, Lore)
       const renderedItem = await renderLore(Name, Lore);
-      console.log(renderedItem)
       const upload = await uploadImage(renderedItem);
-
+      
       imgurUrl = upload.url;
-      this.minecraft.broadcastImage(`${username}'s item at slot ${itemNumber}: ${imgurUrl}`)
+      this.minecraft.broadcastImage({username:username,url:imgurUrl})
+
+      //this.minecraft.broadcastImage(`${username}'s item at slot ${itemNumber}: ${imgurUrl}`)
 
       this.send(`/gc ${username}'s item at slot ${itemNumber}: ${Encode(await imgurUrl)}`);
     } catch (error) {

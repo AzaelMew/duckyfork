@@ -53,10 +53,10 @@ class StabCommand extends minecraftCommand {
   //      onFuckEmbedBroadcast({ username, message, url}) {
 
   onCommand(username, message) {
-    let target = message.split(" ")
+    let target = message.split(" ").slice(1).join(" ");
     getStab().then(a => {
-        this.send(`/gc ${username} has stabbed ${target[1]}!`)
-        this.minecraft.broadcastFuckEmbed({ username: username, message: `Has stabbed ${target[1]}`,url:a })
+        this.send(`/gc ${username} has stabbed ${target}!`)
+        this.minecraft.broadcastFuckEmbed({ username: username, message: `Has stabbed ${target}`,url:a })
     })
 
 

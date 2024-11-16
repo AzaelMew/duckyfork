@@ -19,6 +19,10 @@ class CommunicationBridge {
     return this.bridge.onImageBroadcast(event)
   }
 
+  broadcastImage2(event) {
+    return this.bridge.onImageBroadcast2(event)
+  }
+
   broadcastTextEmbed(event) {
     return this.bridge.onTextEmbedBroadcast(event)
   }

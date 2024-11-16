@@ -166,7 +166,7 @@ class EquipmentCommand extends minecraftCommand {
       }
 
       imgurUrl = response;
-      this.minecraft.broadcastImage(`${username}'s Equipment: ${response2}`)
+      this.minecraft.broadcastImage2({username: username, url:response2})
 
       this.send(`/gc ${username}'s Equipment:  ${imgurUrl}`);
     } catch (error) {

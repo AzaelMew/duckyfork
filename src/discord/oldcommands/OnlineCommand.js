@@ -15,7 +15,8 @@ class GuildList extends DiscordCommand {
     super(discord)
     this.permission = "all"
 
-    this.name = 'list'
+    this.name = 'online'
+    this.aliases = ['online', 'on']
     this.description = 'Checks G Online'
   }
 
@@ -24,25 +25,23 @@ class GuildList extends DiscordCommand {
     const messages = new Promise((resolve, reject) => {
       const listener = (message) => {
         message = message.toString();
-        console.log(message)
+
         cachedMessages.push(message);
-        if (message.startsWith("Online Members:")) {
+        if (message.startsWith("Offline Members")) {
           bot.removeListener("message", listener);
           resolve(cachedMessages);
         }
       };
 
       bot.on("message", listener);
-      setTimeout(() => {
-        bot.chat("/g list");
-      }, 100);
+      bot.chat("/g online");
+
       setTimeout(() => {
         bot.removeListener("message", listener);
         reject("Command timed out. Please try again.");
       }, 5000);
     });
     const message = await messages;
-    console.log(message)
 
     const onlineMembers = message.find((m) => m.startsWith("Online Members: "));
     const totalMembers = message.find((message) => message.startsWith("Total Members: "));
@@ -61,13 +60,13 @@ class GuildList extends DiscordCommand {
             .filter((item) => item);
 
           if (rank === undefined || players === undefined) return;
-
           return `\n**${rank}**\n${players.map((item) => `✦ ${item.replace("_", "\\_")}`).join(" ")}`;
         }
       })
       .filter((item) => item);
+
     const description = `${totalMembers}\n${onlineMembers}\n${online.join("\n")}`;
-    const embed = new Embed("#2ECC71", "Guild Members", description);
+    const embed = new Embed("#2ECC71", "Online Members", description);
     cat.channel.send({
       embeds: [embed],
     })

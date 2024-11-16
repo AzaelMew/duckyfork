@@ -328,14 +328,6 @@ class Eerie extends Pet {
 
   get third() {
     const mult = getValue(this.rarity, { legendary: 0.01 });
-
-    const primalFearKills = this.profile.kills
-      ? this.profile.kills.kills.find((mob) => mob.entityId === "primal_fear")?.amount ?? 0
-      : 0;
-    const kills = Math.max(primalFearKills, 150);
-
-    const killsFormatted = kills >= 150 ? `§a${kills}` : `§c${kills}`;
-
     return {
       name: "§6Fearcreasing",
       desc: [
@@ -343,7 +335,7 @@ class Eerie extends Pet {
           (this.level / 2) * mult,
           1,
         )} §5Fear §7for every §a10 §cPrimal Fears §7killed, up to §a150 §cPrimal Fears§7.`,
-        `§cPrimal Fear Kills§7: (${killsFormatted}§7/§a150§7)`,
+        `§cPrimal Fear Kills§7: (§c0§7/§a150§7)`,
       ],
     };
   }
@@ -1211,9 +1203,7 @@ class GoldenDragon extends Pet {
   get stats() {
     const stats = {};
     if (this.level >= 100) {
-      const goldCollectionDigits = this.profile.collections?.mining?.collections
-        ?.find((collection) => collection.id === "GOLD_INGOT")
-        ?.amount.toString().length;
+      const goldCollectionDigits = "9"
 
       stats.strength = Math.floor(25 + Math.max(0, this.level - 100) * 0.25) + 10 * goldCollectionDigits;
       stats.bonus_attack_speed = Math.floor(25 + Math.max(0, this.level - 100) * 0.25);
