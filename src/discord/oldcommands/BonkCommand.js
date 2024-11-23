@@ -114,7 +114,7 @@ class BonkCommand extends DiscordCommand {
                 })
             } else {
                 setTimeout(() => {
-                    this.sendMinecraftMessage(`/gc ${message.author.globalName} pat ${mcuser}!`)
+                    this.sendMinecraftMessage(`/gc ${message.author.globalName} bonked ${mcuser}!`)
                 }, 350);
                 message.channel.send({
                     embeds: [{

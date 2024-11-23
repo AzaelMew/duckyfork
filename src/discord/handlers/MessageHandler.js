@@ -6,18 +6,11 @@ const imgur = require('imgur-anonymous-uploader');
 const uploader = new imgur("318214bc4f4717f");
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios')
-async function apicall(username, message, type, guildRank) {
+const axios = require('axios');
+const { url } = require("inspector");
+async function apicall(message) {
   try {
-    const response = await axios.post(
-      'http://localhost:3002/api/message',
-      { author: username, guild: "aria", message, type, guildRank }, // Simplified object property assignment
-      {
-        headers: {
-          Authorization: "yonkowashere"
-        }
-      }
-    )
+    const response = await axios.post('http://localhost:3002/api/command', { message: message }, { headers: { Authorization: "yonkowashere" } })
   } catch (error) {
     if (error.code === 'ECONNREFUSED') {
       console.error('Connection refused: Aria is offline');
@@ -48,7 +41,6 @@ async function downloadUploadDeleteImage(imageUrl) {
       writer.on('finish', resolve);
       writer.on('error', reject);
     });
-
     // Step 3: Upload the image using uploader.upload(filepath)
     const uploadResponse = await uploader.uploadFile(filePath)
     console.log('Image uploaded successfully');
@@ -133,6 +125,7 @@ function decode(string) {
 }
 async function Encode(url) {
   let encoded = "l$"
+  console.log(url)
   if (url.startsWith('http://')) {
     encoded += 'h';
     url = url.slice(7); // Remove the 'http://' part
@@ -200,6 +193,9 @@ class MessageHandler {
               url2 = url.replace(/https:\/\/img\.azael\.moe\//gm, "https://img.azael.moe/r/")
               url = await downloadUploadDeleteImage(url2)
             }
+            else{
+              url = await downloadUploadDeleteImage(ogurl)
+            }
             const encodedUrl = await Encode(url);
             message.content = message.content.replace(ogurl, encodedUrl);
             if(index === array.length -1) resolve();
@@ -243,8 +239,12 @@ class MessageHandler {
         replyingTo: await this.fetchReply(message),
         discord: message,
       };
-      await apicall(formattedUsername.replaceAll(" ", ""), content, "discord")
-
+      if(message.channel.id==config.discord.channels.guildChatChannel){
+        await apicall(`/gc ${formattedUsername.replaceAll(" ", "")}: ${content}`)
+      }
+      if(message.channel.id==config.discord.channels.officerChannel){
+        await apicall(`/oc ${formattedUsername.replaceAll(" ", "")}: ${content}`)
+      }
       const images = content.split(" ").filter((line) => line.startsWith("http"));
       for (const attachment of message.attachments.values()) {
         images.push(attachment.url);
@@ -253,12 +253,13 @@ class MessageHandler {
       if (images.length > 0) {
         for (const attachment of images) {
           try {
-            const imgurLink = await uploadImage(attachment);
+            const imgurLink = await downloadUploadDeleteImage(attachment)
+            console.log(imgurLink)
+            const encodedLink = await Encode(imgurLink)
+            messageData.message = messageData.message.replace(attachment, encodedLink);
 
-            messageData.message = messageData.message.replace(attachment, imgurLink.data.link);
-
-            if (messageData.message.includes(imgurLink.data.link) === false) {
-              messageData.message += ` ${imgurLink.data.link}`;
+            if (messageData.message.includes(encodedLink) === false) {
+              messageData.message += ` ${encodedLink}`;
             }
           } catch (error) {
             messageData.message += ` ${attachment}`;

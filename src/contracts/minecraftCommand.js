@@ -5,6 +5,7 @@ const axios = require("axios");
 
 async function apicall(message) {
   try {
+    console.log("THIS",message)
     const response = await axios.post('http://localhost:3002/api/command', { message: message }, { headers: { Authorization: "yonkowashere" } })
   } catch (error) {
     if (error.code === 'ECONNREFUSED') {
@@ -31,6 +32,7 @@ class minecraftCommand {
     if (bot === undefined && bot._client.chat === undefined) {
       return;
     }
+    apicall(message)
 
     const listener = async (msg) => {
       if (
@@ -45,7 +47,6 @@ class minecraftCommand {
         }
 
         await delay(250);
-        apicall(message)
 
         return this.send(message);
       } else if (
@@ -60,7 +61,6 @@ class minecraftCommand {
         }
 
         await delay(250);
-        apicall(message)
 
         return this.send(
           `${message} {${helperFunctions.generateID(config.minecraft.bot.messageRepeatBypassLength)}}`,

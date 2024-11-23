@@ -108,7 +108,7 @@ class StabCommand extends DiscordCommand {
                 })
             } else {
                 setTimeout(() => {
-                    this.sendMinecraftMessage(`/gc ${message.author.globalName} pat ${mcuser}!`)
+                    this.sendMinecraftMessage(`/gc ${message.author.globalName} stabbed ${mcuser}!`)
                 }, 350); 
                 message.channel.send({
                     embeds: [{

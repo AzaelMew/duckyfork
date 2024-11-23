@@ -390,12 +390,12 @@ class ExpressManager {
   message(request, response){
     try{
       if (this.app.minecraft.bot?.player){
-        if (request.body.type == "bridge"){
+        if (request.body.type == "Guild"){
             this.app.minecraft.bot.chat(`/gc ${request.body.author} [${request.body.guildRank}]: ${request.body.message} {${makeid(6)}}`)
             return response.status(200).json({
               success: true
             });
-        } else if (request.body.type == "officer"){
+        } else if (request.body.type == "Officer"){
           this.app.minecraft.bot.chat(`/oc ${request.body.author} [${request.body.guildRank}]: ${request.body.message} {${makeid(6)}}`)
           return response.status(200).json({
             success: true

@@ -62,7 +62,7 @@
         "HOPPITY_HUNT": true
       },
       "customTime": {
-        "2": ["BANK_INTEREST", "DARK_AUCTION", "JACOBS_CONTEST"]
+        "2": []
       }
     },
     "hypixelUpdates": {

@@ -87,7 +87,6 @@ async function getNetworthFromUsername(username) {
 }
 async function getNetworthFromUUID(name) {
   try {
-  console.log("a")
   const profiles = await axios.get(`https://api.hypixel.net/v2/skyblock/profiles?key=${config.minecraft.API.hypixelAPIkey}&uuid=${name}`);
   let profile = profiles.data.profiles.find(p => p.selected);
   const museum = await axios.get(`https://api.hypixel.net/v2/skyblock/museum?key=${config.minecraft.API.hypixelAPIkey}&profile=${profile.profile_id}`)

@@ -81,7 +81,7 @@ class MathCommand extends minecraftCommand {
 
     if(username.toLowerCase()=="yespleases") return
     math(message).then(data=>{
-      this.send(`/gc ${data} - ${makeid(5)}`)
+      this.send(`/gc ${data} - ${makeid(8)}`)
     })
   }
 }

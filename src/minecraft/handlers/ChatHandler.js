@@ -1,4 +1,5 @@
 const { replaceAllRanks, replaceVariables } = require("../../contracts/helperFunctions.js");
+
 const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js");
 const updateRolesCommand = require("../../discord/commands/updateCommand.js");
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -17,10 +18,106 @@ const fs = require('fs');
 const path = require('path');
 const { setInterval } = require('timers/promises');
 const Canvas = require('canvas');
+const imgur = require('imgur-anonymous-uploader');
 const { url } = require('inspector');
+const uploader = new imgur("318214bc4f4717f");
+
 let retsu = ""
 let mes = "";
+Canvas.registerFont('./src/fonts/MinecraftRegular-Bmg3.ttf', { family: 'Minecraft' });
+Canvas.registerFont('./src/fonts/minecraft-bold.otf', { family: 'MinecraftBold' });
+Canvas.registerFont('./src/fonts/2_Minecraft-Italic.otf', { family: 'MinecraftItalic' });
+Canvas.registerFont('./src/fonts/unifont.ttf', { family: 'MinecraftUnicode' });
+const RGBA_COLOR = {
+  0: 'rgba(0,0,0,1)',
+  1: 'rgba(0,0,170,1)',
+  2: 'rgba(0,170,0,1)',
+  3: 'rgba(0,170,170,1)',
+  4: 'rgba(170,0,0,1)',
+  5: 'rgba(170,0,170,1)',
+  6: 'rgba(255,170,0,1)',
+  7: 'rgba(170,170,170,1)',
+  8: 'rgba(85,85,85,1)',
+  9: 'rgba(85,85,255,1)',
+  a: 'rgba(85,255,85,1)',
+  b: 'rgba(85,255,255,1)',
+  c: 'rgba(255,85,85,1)',
+  d: 'rgba(255,85,255,1)',
+  e: 'rgba(255,255,85,1)',
+  f: 'rgba(255,255,255,1)',
+};
 
+async function getCanvasWidthAndHeight(lore) {
+  const canvas = Canvas.createCanvas(1, 1);
+  const ctx = canvas.getContext('2d');
+  ctx.font = '24px Minecraft';
+
+  let highestWidth = 0;
+  for (let i = 0; i < lore.length; i++) {
+    const width = ctx.measureText(lore[i].replace(/\u00A7[0-9A-FK-OR]/gi, '')).width;
+    if (width > highestWidth) {
+      highestWidth = width;
+    }
+  }
+
+  return { height: lore.length * 24 + 15, width: highestWidth + 60 };
+}
+
+async function renderLore(lore) {
+  lore = lore.split("\n")
+  const measurements = await getCanvasWidthAndHeight(lore);
+  const canvas = Canvas.createCanvas(measurements.width, measurements.height);
+  const ctx = canvas.getContext('2d');
+  // BACKGROUND
+  ctx.fillStyle = '#100110';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // FONT
+  ctx.shadowOffsetX = 3;
+  ctx.shadowOffsetY = 3;
+  ctx.shadowColor = '#131313';
+  ctx.font = '24px Minecraft';
+  ctx.fillStyle = '#ffffff';
+
+  // TEXT
+  for (const [index, item] of Object.entries(lore)) {
+    let width = 10;
+    const splitItem = item.split('§');
+    if (splitItem[0].length == 0) splitItem.shift();
+
+    for (const toRenderItem of splitItem) {
+      ctx.fillStyle = RGBA_COLOR[toRenderItem[0]];
+
+      if (toRenderItem.startsWith('l')) ctx.font = '24px MinecraftBold, MinecraftUnicode';
+      else if (toRenderItem.startsWith('o')) ctx.font = '24px MinecraftItalic, MinecraftUnicode';
+      else ctx.font = '24px Minecraft, MinecraftUnicode';
+
+      ctx.fillText(toRenderItem.substring(1), width, index * 24 + 29);
+      width += ctx.measureText(toRenderItem.substring(1)).width;
+    }
+  }
+  return canvas.toBuffer();
+}
+async function getLoreFromID(id) {
+  let lore = await axios.post('https://baltraz.is-a.dev/getItem', {
+    itemUUID: id
+  })
+    .then(response => {
+      let lore = `${response.data.name}\n${response.data.lore.join('\n')}`
+      return lore
+    })
+    .catch(error => {
+      console.error(error);
+    });
+  return lore
+}
+async function getItemLore(id) {
+  let lore = await getLoreFromID(id)
+  const renderedItem = await renderLore(lore)
+  const uploadResponse = await uploader.uploadBuffer(renderedItem);
+  if (!uploadResponse.url) return "Failed to upload image.";
+  else return uploadResponse.url
+}
 function charInc(str, int) {
   const charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let incrementedStr = '';
@@ -145,7 +242,7 @@ async function apicall(message) {
     if (error.code === 'ECONNREFUSED') {
       console.error('Connection refused: Aria is offline');
     } else {
-      console.error('An error occurred:', error.message);
+      console.error('An error occurred:', error.reason);
     }
   }
 }
@@ -221,7 +318,6 @@ class StateHandler extends eventHandler {
       if (config.minecraft.guildRequirements.enabled) {
         const [profile] = await Promise.all([ getLatestProfile(uuid)]);
         let meetRequirements = false;
-        console.log(username)
         const skyblockLevel = (profile.profile?.leveling?.experience || 0) / 100 ?? 0;
 
         if (
@@ -256,7 +352,7 @@ class StateHandler extends eventHandler {
     if (this.isLoginMessage(message)) {
       if (config.discord.other.joinMessage === true) {
         const username = message.split(">")[1].trim().split("joined.")[0].trim();
-        apicall(`/gc ${username} joined. {${makeid(6)}}`)
+        apicall(`/gc ${username} joined. {${makeid(12)}}`)
         return this.minecraft.broadcastPlayerToggle({
           fullMessage: colouredMessage,
           username: username,
@@ -270,7 +366,7 @@ class StateHandler extends eventHandler {
     if (this.isLogoutMessage(message)) {
       if (config.discord.other.joinMessage === true) {
         const username = message.split(">")[1].trim().split("left.")[0].trim();
-        apicall(`/gc ${username} left. {${makeid(6)}}`)
+        apicall(`/gc ${username} left. {${makeid(12)}}`)
         return this.minecraft.broadcastPlayerToggle({
           fullMessage: colouredMessage,
           username: username,
@@ -293,7 +389,7 @@ class StateHandler extends eventHandler {
         })}`,
       );
       await this.updateUser(username);
-      apicall(`/gc ${username} has joined Sky. {${makeid(6)}}`)
+      apicall(`/gc ${username} has joined Sky. {${makeid(12)}}`)
       return [
         this.minecraft.broadcastHeadedEmbed({
           message: replaceVariables(messages.joinMessage, { username }),
@@ -318,7 +414,7 @@ class StateHandler extends eventHandler {
         .trim()
         .split(/ +/g)[0];
       await this.updateUser(username);
-      apicall(`/gc ${username} left the guild. {${makeid(6)}}`)
+      apicall(`/gc ${username} left the guild. {${makeid(12)}}`)
 
       return [
         this.minecraft.broadcastHeadedEmbed({
@@ -344,7 +440,7 @@ class StateHandler extends eventHandler {
         .trim()
         .split(/ +/g)[0];
       await this.updateUser(username);
-      apicall(`/gc ${username} was kicked from the guild. {${makeid(6)}}`)
+      apicall(`/gc ${username} was kicked from the guild. {${makeid(12)}}`)
 
       return [
         this.minecraft.broadcastHeadedEmbed({
@@ -376,7 +472,7 @@ class StateHandler extends eventHandler {
         .pop()
         .trim();
       await this.updateUser(username);
-      apicall(`/gc ${username} was promoted to ${rank} {${makeid(6)}}`)
+      apicall(`/gc ${username} was promoted to ${rank} {${makeid(12)}}`)
 
       return [
         this.minecraft.broadcastCleanEmbed({
@@ -410,7 +506,7 @@ class StateHandler extends eventHandler {
         .pop()
         .trim();
       await this.updateUser(username);
-      apicall(`/gc ${username} was demoted to ${rank} {${makeid(6)}}`)
+      apicall(`/gc ${username} was demoted to ${rank} {${makeid(12)}}`)
 
       return [
         this.minecraft.broadcastCleanEmbed({
@@ -790,7 +886,6 @@ class StateHandler extends eventHandler {
         : /^(?<chatType>\w+) > (?:(?:\[(?<rank>[^\]]+)\] )?(?:(?<username>\w+)(?: \[(?<guildRank>[^\]]+)\])?: )?)?(?<message>.+)$/;
 
     const match = (config.discord.other.messageMode === "minecraft" ? colouredMessage : message).match(regex);
-
     if (!match) {
       return;
     }
@@ -799,10 +894,11 @@ class StateHandler extends eventHandler {
       if (message.includes("replying to") && username === this.bot.username) {
         return;
       }
+
       if (this.isMessageFromBot(username)) {
         return
       }
-      
+
       if (message.includes("l$")) {
         let message2 = message.split(' ')
         for (let i = 0; i < message2.length; i++) {
@@ -833,7 +929,6 @@ class StateHandler extends eventHandler {
         }
   
       }
-  
       if (this.isSoopyMessage(message)) {
         const regex = /\<ItemSharing:(\d+)\>/g;
         if (regex.test(message)) {
@@ -853,7 +948,6 @@ class StateHandler extends eventHandler {
           })
         }
       }
-
       this.minecraft.broadcastMessage({
         fullMessage: colouredMessage,
         chat: chatType,
@@ -872,6 +966,9 @@ class StateHandler extends eventHandler {
   }
 
   isDiscordMessage(message) {
+    if(message.includes("<ItemSharing")){
+      return false;
+    }
     const isDiscordMessage = /^(?<username>(?!https?:\/\/)[^\s»:>]+)\s*[»:>]\s*(?<message>.*)/;
 
     const match = message.match(isDiscordMessage);

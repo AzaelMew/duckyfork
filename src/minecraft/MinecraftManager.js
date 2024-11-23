@@ -8,6 +8,7 @@ const config = require("../../config.json");
 const mineflayer = require("mineflayer");
 const Logger = require("../Logger.js");
 const Filter = require("bad-words");
+const { Console } = require("winston/lib/winston/transports/index.js");
 const filter = new Filter();
 const fileredWords = config.discord.other.filterWords ?? "";
 filter.addWords(...fileredWords);
@@ -65,6 +66,7 @@ class MinecraftManager extends CommunicationBridge {
     message = replaceVariables(config.minecraft.bot.messageFormat, { username, message });
 
     const chat = channel === config.discord.channels.officerChannel ? "/oc" : "/gc";
+    console.log(chat)
 
     if (replyingTo) {
       message = message.replace(username, `${username} replying to ${replyingTo}`);
@@ -82,7 +84,6 @@ class MinecraftManager extends CommunicationBridge {
         successfullySent = true;
       }
     };
-
     bot.on("message", messageListener);
     this.bot.chat(`${chat} ${message}`);
 

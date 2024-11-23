@@ -133,7 +133,8 @@ class DiscordManager extends CommunicationBridge {
       channel.send(imgurUrl);
       imgurUrl = "";
     }
-    await apicall(username, message, "bridge", guildRank)
+    console.log(username, message, chat||"Guild", guildRank)
+    await apicall(username, message, chat||"Guild", guildRank,)
 
     switch (mode) {
       case "bot":
@@ -203,7 +204,6 @@ class DiscordManager extends CommunicationBridge {
 
   async onBroadcastCleanEmbed({ message, color, channel }) {
     Logger.broadcastMessage(message, "Event");
-    console.log(channel)
     channel = await this.stateHandler.getChannel("Guild");
     channel.send({
       embeds: [
@@ -257,7 +257,6 @@ class DiscordManager extends CommunicationBridge {
 
   async onImageBroadcast2({ username, url }) {
     const channel = await this.stateHandler.getChannel("Guild");
-    console.log(url)
     url = url.split(" | ")
 
 
@@ -308,7 +307,7 @@ class DiscordManager extends CommunicationBridge {
 
         //sends to other bridge
         if (username !== this.app.minecraft.bot.username) {
-          axios.post('http://localhost:3002/api/message', { author: username, guild: "aria", message: message, type: "officer", guildRank: guildRank }, {
+          axios.post('http://localhost:3002/api/message', { author: username, guild: "aria", message: message, type: "Officer", guildRank: guildRank }, {
             headers: {
               Authorization: "yonkowashere"
             }
@@ -354,7 +353,7 @@ class DiscordManager extends CommunicationBridge {
 
   async onTextEmbedBroadcast({ username, message, guildRank, url, overflow }) {
     if (username !== this.app.minecraft.bot.username) {
-      apicall(username, overflow, "bridge", guildRank)
+      apicall(username, overflow, "Guild", guildRank)
     }
 
     Logger.broadcastMessage(`${username} [${guildRank}]: ${message}`, "Event")
@@ -461,7 +460,6 @@ class DiscordManager extends CommunicationBridge {
 
   async onBroadcastCommandEmbed({ username, message }) {
     Logger.broadcastMessage(message, "Event");
-
 
     const channel = await this.stateHandler.getChannel("Guild");
     let icon = username.split("'")
