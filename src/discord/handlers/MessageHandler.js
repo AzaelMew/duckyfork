@@ -10,7 +10,7 @@ const axios = require('axios');
 const { url } = require("inspector");
 async function apicall(message) {
   try {
-    const response = await axios.post('http://localhost:3002/api/command', { message: message }, { headers: { Authorization: "yonkowashere" } })
+    const response = await axios.post('http://192.168.0.6:3001/api/command', { message: message }, { headers: { Authorization: "yonkowashere" } })
   } catch (error) {
     if (error.code === 'ECONNREFUSED') {
       console.error('Connection refused: Aria is offline');
@@ -125,7 +125,6 @@ function decode(string) {
 }
 async function Encode(url) {
   let encoded = "l$"
-  console.log(url)
   if (url.startsWith('http://')) {
     encoded += 'h';
     url = url.slice(7); // Remove the 'http://' part
@@ -254,7 +253,6 @@ class MessageHandler {
         for (const attachment of images) {
           try {
             const imgurLink = await downloadUploadDeleteImage(attachment)
-            console.log(imgurLink)
             const encodedLink = await Encode(imgurLink)
             messageData.message = messageData.message.replace(attachment, encodedLink);
 

@@ -46,12 +46,12 @@ if (config.minecraft.skyblockEventsNotifications.enabled) {
 
         const cTime = getCustomTime(customTime, event);
         if (cTime.length !== 0 && cTime.includes(minutes.toString())) {
-          eventBOT.send(`/gc [EVENT] ${eventData.name}${extraInfo}: Starting in ${minutes}m! {${makeid(12)}}`);
+          eventBOT.warpSend(`/gc [EVENT] ${eventData.name}${extraInfo}: Starting in ${minutes}m! {${makeid(12)}}`);
           await delay(1500);
         }
 
         if (minutes == 0) {
-          eventBOT.send(`/gc [EVENT] ${eventData.name}${extraInfo}: Starting now! {${makeid(12)}}`,);
+          eventBOT.warpSend(`/gc [EVENT] ${eventData.name}${extraInfo}: Starting now! {${makeid(12)}}`,);
           await delay(1500);
         }
       }

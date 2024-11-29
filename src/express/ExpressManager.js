@@ -424,7 +424,6 @@ class ExpressManager {
 
   command(request, response) {
     try {
-      console.log(request.body.message)
       this.app.minecraft.bot.chat(`${request.body.message}`)
       return response.status(200).json({
         success: true,

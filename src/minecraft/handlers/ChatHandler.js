@@ -237,7 +237,7 @@ function makeid(length) {
 }
 async function apicall(message) {
   try {
-    const response = await axios.post('http://localhost:3002/api/command', { message: message }, { headers: { Authorization: "yonkowashere" } })
+    const response = await axios.post('http://192.168.0.6:3001/api/command', { message: message }, { headers: { Authorization: "yonkowashere" } })
   } catch (error) {
     if (error.code === 'ECONNREFUSED') {
       console.error('Connection refused: Aria is offline');
@@ -396,13 +396,6 @@ class StateHandler extends eventHandler {
           title: `Member Joined`,
           icon: `https://mc-heads.net/avatar/${username}`,
           color: 2067276,
-          channel: "Logger",
-        }),
-        this.minecraft.broadcastHeadedEmbed({
-          message: replaceVariables(messages.joinMessage, { username }),
-          title: `Member Joined`,
-          icon: `https://mc-heads.net/avatar/${username}`,
-          color: 2067276,
           channel: "Guild",
         }),
       ];
@@ -417,13 +410,8 @@ class StateHandler extends eventHandler {
       apicall(`/gc ${username} left the guild. {${makeid(12)}}`)
 
       return [
-        this.minecraft.broadcastHeadedEmbed({
-          message: replaceVariables(messages.leaveMessage, { username }),
-          title: `Member Left`,
-          icon: `https://mc-heads.net/avatar/${username}`,
-          color: 15548997,
-          channel: "Logger",
-        }),
+
+
         this.minecraft.broadcastHeadedEmbed({
           message: replaceVariables(messages.leaveMessage, { username }),
           title: `Member Left`,
@@ -443,13 +431,7 @@ class StateHandler extends eventHandler {
       apicall(`/gc ${username} was kicked from the guild. {${makeid(12)}}`)
 
       return [
-        this.minecraft.broadcastHeadedEmbed({
-          message: replaceVariables(messages.kickMessage, { username }),
-          title: `Member Kicked`,
-          icon: `https://mc-heads.net/avatar/${username}`,
-          color: 15548997,
-          channel: "Logger",
-        }),
+
         this.minecraft.broadcastHeadedEmbed({
           message: replaceVariables(messages.kickMessage, { username }),
           title: `Member Kicked`,
@@ -483,14 +465,7 @@ class StateHandler extends eventHandler {
           color: 2067276,
           channel: "Guild",
         }),
-        this.minecraft.broadcastCleanEmbed({
-          message: replaceVariables(messages.promotionMessage, {
-            username,
-            rank,
-          }),
-          color: 2067276,
-          channel: "Logger",
-        }),
+
       ];
     }
 
@@ -517,14 +492,7 @@ class StateHandler extends eventHandler {
           color: 15548997,
           channel: "Guild",
         }),
-        this.minecraft.broadcastCleanEmbed({
-          message: replaceVariables(messages.demotionMessage, {
-            username,
-            rank,
-          }),
-          color: 15548997,
-          channel: "Logger",
-        }),
+
       ];
     }
 
@@ -611,14 +579,7 @@ class StateHandler extends eventHandler {
           color: 2067276,
           channel: "Guild",
         }),
-        this.minecraft.broadcastHeadedEmbed({
-          message: replaceVariables(messages.blacklistMessage, {
-            username,
-          }),
-          title: `Blacklist`,
-          color: 2067276,
-          channel: "Logger",
-        }),
+
       ];
     }
 
@@ -633,14 +594,7 @@ class StateHandler extends eventHandler {
           color: 2067276,
           channel: "Guild",
         }),
-        this.minecraft.broadcastHeadedEmbed({
-          message: replaceVariables(messages.blacklistRemoveMessage, {
-            username,
-          }),
-          title: `Blacklist`,
-          color: 2067276,
-          channel: "Logger",
-        }),
+
       ];
     }
 
@@ -655,11 +609,7 @@ class StateHandler extends eventHandler {
           color: 2067276,
           channel: "Guild",
         }),
-        this.minecraft.broadcastCleanEmbed({
-          message: replaceVariables(messages.onlineInvite, { username }),
-          color: 2067276,
-          channel: "Logger",
-        }),
+
       ];
     }
 
@@ -675,11 +625,7 @@ class StateHandler extends eventHandler {
           color: 2067276,
           channel: "Guild",
         }),
-        this.minecraft.broadcastCleanEmbed({
-          message: replaceVariables(messages.offlineInvite, { username }),
-          color: 2067276,
-          channel: "Logger",
-        }),
+
       ];
     }
 
@@ -690,11 +636,7 @@ class StateHandler extends eventHandler {
           color: 15548997,
           channel: "Guild",
         }),
-        this.minecraft.broadcastCleanEmbed({
-          message: message.replace(/\[(.*?)\]/g, "").trim(),
-          color: 15548997,
-          channel: "Logger",
-        }),
+
       ];
     }
 
@@ -709,11 +651,7 @@ class StateHandler extends eventHandler {
           color: 15548997,
           channel: "Guild",
         }),
-        this.minecraft.broadcastCleanEmbed({
-          message: replaceVariables(messages.guildMuteMessage, { time }),
-          color: 15548997,
-          channel: "Logger",
-        }),
+
       ];
     }
 
@@ -724,11 +662,7 @@ class StateHandler extends eventHandler {
           color: 2067276,
           channel: "Guild",
         }),
-        this.minecraft.broadcastCleanEmbed({
-          message: messages.guildUnmuteMessage,
-          color: 2067276,
-          channel: "Logger",
-        }),
+
       ];
     }
 
@@ -751,14 +685,6 @@ class StateHandler extends eventHandler {
           color: 15548997,
           channel: "Guild",
         }),
-        this.minecraft.broadcastCleanEmbed({
-          message: replaceVariables(messages.userMuteMessage, {
-            username,
-            time,
-          }),
-          color: 15548997,
-          channel: "Logger",
-        }),
       ];
     }
 
@@ -775,13 +701,7 @@ class StateHandler extends eventHandler {
           color: 2067276,
           channel: "Guild",
         }),
-        this.minecraft.broadcastCleanEmbed({
-          message: replaceVariables(messages.userUnmuteMessage, {
-            username,
-          }),
-          color: 2067276,
-          channel: "Logger",
-        }),
+
       ];
     }
 

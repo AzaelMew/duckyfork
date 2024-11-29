@@ -3,34 +3,7 @@ const DiscordCommand = require('../../contracts/DiscordCommand')
 const config = require("../../../config.json");
 const axios = require("axios");
 const fs = require('fs');
-function incrementNumberInJSON(itemName) {
-  // Set the file path for the JSON file
-  const jsonFilePath = '/srv/Tempest/bridge/data.json';
 
-  // Read the existing JSON file or create an empty object
-  let jsonData = {};
-  try {
-      const jsonString = fs.readFileSync(jsonFilePath, 'utf8');
-      jsonData = JSON.parse(jsonString);
-  } catch (error) {
-      // File does not exist or is not valid JSON, create an empty object
-      console.error('Error reading JSON file:', error.message);
-  }
-
-  // Get the current number for the specified item or default to 0
-  const currentNumber = jsonData[itemName] || 0;
-
-  // Increment the number by 1
-  const newNumber = currentNumber + 1;
-
-  // Update the JSON with the new number
-  jsonData[itemName] = newNumber;
-
-  // Write the updated JSON back to the file
-  fs.writeFileSync(jsonFilePath, JSON.stringify(jsonData, null, 2), 'utf8');
-
-
-}
 function numberWithCommas(x) {
   if(x>999815672){
     x = x.toString().split(".")[0]
@@ -61,7 +34,7 @@ async function getSlayerFromUUID(name){
         name = "a"
       }
 	if (name == "f03695547707486ab2308518f04102f7") return
-      const { data } = await axios.get('http://localhost:3000/v1/profiles/'+name+'?key=77ac89bad625453facaa36457eb3cf5c')
+      const { data } = await axios.get('http://192.168.0.7:3000/v1/profiles/'+name+'?key=77ac89bad625453facaa36457eb3cf5c')
     let wslayerEXP = data.data[0]?.slayer?.wolf.xp
     let zslayerEXP = data.data[0]?.slayer?.zombie.xp
     let sslayerEXP = data.data[0]?.slayer?.spider.xp
@@ -93,7 +66,7 @@ class SlayerCommand extends DiscordCommand {
     }
   
   onCommand(message) {
-    incrementNumberInJSON("DCSlayerCommandCount")
+    
     let args = this.getArgs(message)
     let user = args.shift()
     getSlayerFromUser(user).then(stats => {

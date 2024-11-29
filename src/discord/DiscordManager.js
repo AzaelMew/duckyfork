@@ -14,7 +14,7 @@ const { description } = require("./commands/updateCommand.js");
 async function apicall(username, message, type, guildRank) {
   try {
     const response = await axios.post(
-      'http://localhost:3002/api/message',
+      'http://192.168.0.6:3001/api/message',
       { author: username, guild: "aria", message, type, guildRank }, // Simplified object property assignment
       {
         headers: {
@@ -133,7 +133,6 @@ class DiscordManager extends CommunicationBridge {
       channel.send(imgurUrl);
       imgurUrl = "";
     }
-    console.log(username, message, chat||"Guild", guildRank)
     await apicall(username, message, chat||"Guild", guildRank,)
 
     switch (mode) {
@@ -307,7 +306,7 @@ class DiscordManager extends CommunicationBridge {
 
         //sends to other bridge
         if (username !== this.app.minecraft.bot.username) {
-          axios.post('http://localhost:3002/api/message', { author: username, guild: "aria", message: message, type: "Officer", guildRank: guildRank }, {
+          axios.post('http://192.168.0.6:3001/api/message', { author: username, guild: "aria", message: message, type: "Officer", guildRank: guildRank }, {
             headers: {
               Authorization: "yonkowashere"
             }

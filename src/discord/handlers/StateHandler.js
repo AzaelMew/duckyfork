@@ -31,7 +31,7 @@ class StateHandler {
     channel.send({
       embeds: [
         {
-          author: { name: `Chat Bridge is Online` },
+          author: { name: `Sky Bridge is Online` },
           color: 2067276,
         },
       ],
@@ -47,7 +47,7 @@ class StateHandler {
     await channel.send({
       embeds: [
         {
-          author: { name: `Chat Bridge is Offline` },
+          author: { name: `Sky Bridge is Offline` },
           color: 15548997,
         },
       ],

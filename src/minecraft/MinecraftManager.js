@@ -66,7 +66,6 @@ class MinecraftManager extends CommunicationBridge {
     message = replaceVariables(config.minecraft.bot.messageFormat, { username, message });
 
     const chat = channel === config.discord.channels.officerChannel ? "/oc" : "/gc";
-    console.log(chat)
 
     if (replyingTo) {
       message = message.replace(username, `${username} replying to ${replyingTo}`);
