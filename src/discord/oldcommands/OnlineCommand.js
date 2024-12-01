@@ -41,8 +41,8 @@ const executeCommand = async (bot) => {
   try {
     const message = await messages;
 
-    const onlineMembers = message.find((m) => m.startsWith("Online Members: ")).replace("Online Members: ","");
-    const totalMembers = message.find((m) => m.startsWith("Total Members: ")).replace("Total Members: ","");
+    const onlineMembers = message.find((m) => m.startsWith("Online Members: ")).replace("Online Members: ", "");
+    const totalMembers = message.find((m) => m.startsWith("Total Members: ")).replace("Total Members: ", "");
 
     const onlineMembersList = message;
     const online = onlineMembersList
@@ -86,8 +86,9 @@ const sortOnline = (online) => {
       if (!rank || !players || players.length === 0) return; // Skip invalid or empty entries
 
       // Format the rank and player list
-      const formattedRank = `**${rank}**`;
-      const formattedPlayers = players.map((player) => `${player}`).join(", ");
+      const formattedRank = `\n**${rank}**`;
+
+      const formattedPlayers = players.map((player) => `✦ ${player.replace("_", "\\_").replace("[VIP]", "").replace("[VIP+]", "").replace("[MVP]", "").replace("[MVP+]", "").replace("[MVP++]", "").replace("[YOUTUBE]", "")}`).join(" ");
 
       return `${formattedRank}\n${formattedPlayers}`;
     })
@@ -142,10 +143,10 @@ class GuildList extends DiscordCommand {
 
   async onCommand(cat) {
     let skyData = await executeCommand(bot)
-    const {data} = await axios.post('http://192.168.0.6:3001/api/online', { message: "a" }, { headers: { Authorization: "yonkowashere" } })
-    const combinedData = deepMergeGuildData(skyData,data.data)
-    const description = `**Total Members** ${combinedData.totalMembers}\n**Online Members:** ${combinedData.onlineMembers}\n\n${sortOnline(combinedData.online).join("\n")}`;
-    const embed = new Embed("#2ECC71", "Online Members", description);
+    const { data } = await axios.post('http://192.168.0.6:3001/api/online', { message: "a" }, { headers: { Authorization: "yonkowashere" } })
+    const combinedData = deepMergeGuildData(skyData, data.data)
+    const description = `**Total Members** ${combinedData.totalMembers}\n**Online Members:** ${combinedData.onlineMembers}\n${sortOnline(combinedData.online).join("\n")}`;
+    const embed = new Embed("#2ECC71", "Online Members", description.replace("✦ TempestBridge","").replace("✦ MrTheAFK",""));
 
     cat.channel.send({
       embeds: [embed],

@@ -42,13 +42,13 @@ class KickCommand extends DiscordCommand {
       }
 
       getUUIDFromUsername(user).then(uuid => {
-        let blacklist = fs.readFileSync('/srv/Tempest/bridge/blacklist.txt', 'utf-8');
+        let blacklist = fs.readFileSync('/tempest/blacklist.txt', 'utf-8');
         let blacklistedIDs = blacklist.trim().split('\n');
             if (!blacklist.includes(uuid)) {
               this.sendMinecraftMessage(`/oc ${user} ${uuid} kicked, and added to blacklist.`)
                 blacklist += uuid + "\n";
   
-                fs.writeFileSync('/srv/Tempest/bridge/blacklist.txt', blacklist, 'utf-8');
+                fs.writeFileSync('/tempest/blacklist.txt', blacklist, 'utf-8');
             }
             message.channel.send({
               embeds: [{
