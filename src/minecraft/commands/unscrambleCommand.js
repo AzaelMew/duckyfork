@@ -4,7 +4,17 @@ const config = require("../../../config.json");
 const getWord = (message) => message.split(" ").pop();
 
 const cooldowns = new Map();
-
+function stripCurl(input) {
+  const regex = /\{[^}]*\}$/;
+  return input.replace(regex, '');
+}
+function extractIGN(inputString) {
+  // Match the pattern with optional [rank] section
+  const match = inputString.match(/^(?:\[.*?\] )?(.*?) \[.*?\]$/);
+  
+  // Return the captured group or null if no match
+  return match ? match[1] : null;
+}
 class unscrambleCommand extends minecraftCommand {
   constructor(minecraft) {
     super(minecraft);
@@ -44,9 +54,10 @@ class unscrambleCommand extends minecraftCommand {
       let answered = false;
       cooldowns.set(this.name, Date.now());
       const listener = (username, message) => {
+        message = stripCurl(message.replace("[VIP] TempestBridge [Elder]: ",""))
         if (getWord(message) === answer) {
           this.send(
-            `/gc ${userUsername} guessed it right! Time elapsed: ${(Date.now() - startTime).toLocaleString()}ms!`,
+            `/gc ${extractIGN(message.split(": ")[0])} guessed it right! Time elapsed: ${(Date.now() - startTime).toLocaleString()}ms!`,
           );
 
           bot.removeListener("chat", listener);

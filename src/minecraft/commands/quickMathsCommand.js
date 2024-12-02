@@ -9,7 +9,17 @@ const getAnswer = (message) => {
 
   return message.split(": ")[1];
 };
-
+function stripCurl(input) {
+  const regex = /\{[^}]*\}$/;
+  return input.replace(regex, '');
+}
+function extractIGN(inputString) {
+  // Match the pattern with optional [rank] section
+  const match = inputString.match(/^(?:\[.*?\] )?(.*?) \[.*?\]$/);
+  
+  // Return the captured group or null if no match
+  return match ? match[1] : null;
+}
 class QuickMathsCommand extends minecraftCommand {
   constructor(minecraft) {
     super(minecraft);
@@ -31,19 +41,21 @@ class QuickMathsCommand extends minecraftCommand {
       const answer = eval(operands.join(operator));
       const headStart = 250;
 
-      this.send(`/gc ${username} What is ${equation}? (You have ${headStart}ms headstart)`);
+      this.send(`/gc [QUICKMATHS] What is ${equation}?`);
       await delay(headStart);
 
       const startTime = Date.now();
       let answered = false;
 
       const listener = (username, message) => {
-        if (getAnswer(message) !== answer.toString()) {
+        console.log(message)
+        message = stripCurl(message.replace("[VIP] TempestBridge [Elder]: ",""))
+        if (getAnswer(message).split(" ")[0] !== answer.toString()) {
           return;
         }
-
+        
         answered = true;
-        this.send(`/gc ${userUsername} Correct! It took you ${(Date.now() - startTime).toLocaleString()}ms`);
+        this.send(`/gc ${extractIGN(message.split(": ")[0])} Correct! It took you ${(Date.now() - startTime).toLocaleString()}ms`);
         bot.removeListener("chat", listener);
       };
 
@@ -53,7 +65,7 @@ class QuickMathsCommand extends minecraftCommand {
         bot.removeListener("chat", listener);
 
         if (!answered) {
-          this.send(`/gc ${userUsername} Time's up! The answer was ${answer}`);
+          this.send(`/gc Time's up! The answer was ${answer}`);
         }
       }, 10000);
     } catch (error) {
